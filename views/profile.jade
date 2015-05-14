@@ -1,0 +1,19 @@
+extends layout
+block content
+	.profile
+		.well
+			img(src="/img/png/glyphicons-4-user.png", class="profile-pic")
+			.panel.panel-default
+				.panel-heading
+					p(class="panel-header").
+						Username
+				.panel-body
+					p.
+						#{userinfo.username}
+			.panel.panel-default
+				.panel-heading
+					p(class="panel-header").
+						Email
+				.panel-body
+					p.
+						#{userinfo.email}

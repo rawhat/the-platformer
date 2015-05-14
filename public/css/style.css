@@ -1,0 +1,60 @@
+.platformer-sidebar {
+	background-color: gray;
+	position: fixed;
+	padding: 40px;
+	padding-bottom: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 270px;
+}
+
+footer {
+	text-align: center;
+	position: relative;
+	margin: 0 auto;
+	width: 100%;
+}
+
+div#login{
+	text-align: center;
+	width: 30%;
+	margin-top: 10%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+button#login_button{
+	margin-top: 5px;
+	margin-bottom: 10px;
+}
+
+.friends-button{
+	margin-top: 5%;
+}
+
+.newpost{
+	text-align: center;
+	margin-bottom: 5%;
+}
+
+.newpostarea{
+	text-align: center;
+	margin-bottom: 5%;
+}
+
+p.panel-header{
+	font-size: 1.2em;
+	font-weight: bold;
+	padding: -5px;
+}
+
+.profile{
+	width: 75%;
+	position: relative;
+	left: 12.5%;
+}
+
+.profile-pic{
+	padding: 15px;
+}

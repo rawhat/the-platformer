@@ -1,0 +1,135 @@
+
+html
+{ height: 100%;}
+
+{ margin: 0;
+  padding: 0;}
+
+
+
+body
+{ font: normal 90% "Times New Roman", Times, serif;
+  color: #000;
+}
+
+p
+{ padding: 0 0 10px 0;
+  line-height: 1.7em;
+  font-size: 100% }
+
+img
+{ border: 0;}
+
+h1, h2, h3, h4, h5, h6 
+{ font: normal 175% "Comic Sans MS", cursive, sans-serif;
+  color: #000;
+  letter-spacing: -1px;
+  margin: 0 0 10px 0;}
+
+h2
+{ font: normal 165% "Comic Sans MS", cursive, sans-serif;}
+
+h3
+{ font: "Comic Sans MS", cursive, sans-serif;}
+
+h4, h5, h6
+{ margin: 0;
+  padding: 0 0 0px 0;
+  font: normal 150% 'News Cycle', Arial, sans-serif;
+  color: #FFF;
+  line-height: 1.5em;}
+
+h5, h6
+{ font: normal 95% 'News Cycle', Arial, sans-serif;
+  color: #888;
+  padding-bottom: 15px;}
+  
+span
+{ color: #B1521A;
+  text-shadow: none;}
+
+
+header
+{ height: 150px;
+  background: #1D1D1D;
+  background: -moz-linear-gradient(#535353, #000);
+  background: -o-linear-gradient(#535353, #000);
+  background: -webkit-linear-gradient(#535353, #000);}
+ 
+nav
+{ height: 60px;}  
+  
+#strapline
+{ width: 940px;
+  height: 80px;
+  text-align: center; 
+  margin: 0 auto;} 
+  
+#welcome_slogan
+{ width: 940px;
+  float: left;
+  height: 70px;
+  padding-top: 10px;  
+  margin: 0 auto;}    
+  
+#welcome_slogan H3
+{ font: bold 300% 'News Cycle', Arial, sans-serif;
+  letter-spacing: -3px;
+  color: #FFF;} 
+  
+#menubar
+{ width: 940px;
+  height: 55px;
+  padding-top: 10px;
+  text-align: center; 
+  margin: 0 auto;}    
+  
+ul#nav
+{ margin:0;}
+
+ul#nav li
+{ padding: 0 0 0 0px;
+  list-style: none;
+  margin: 2px 0 0 0;
+  display: inline;
+  background: transparent;}
+
+ul#nav li a
+{ float: left;
+  font: bold 130% 'News Cycle', Arial, sans-serif;
+  height: 24px;
+  margin: 8px 20px 0 0;
+  text-shadow: 0px 1px 0px #000;
+  padding: 0px 20px 10px 20px;
+  background: transparent; 
+  border-radius: 7px 7px 7px 7px;
+  -moz-border-radius: 7px 7px 7px 7px;
+  -webkit-border: 7px 7px 7px 7px;
+  text-align: center;
+  color: #FFF;
+  text-decoration: none;} 
+ 
+ 
+/*controls the hover highlight mechanic */ 
+
+ul#nav li.current a, ul#nav li:hover a
+{ color: #DBD0D0;
+  background: #0055D4;
+  background: -webkit-linear-gradient(#886E67, #886E67);
+  text-shadow: none;}
+  
+.addfriend {
+  background-image: url(http://localhost/platformer/img/png/glyphicons-191-circle-plus.png);
+  background-size: 25px 25px;
+  width: 30px;
+  height: 30px;
+}
+
+textarea {
+  overflow: auto;
+  resize: none;
+}
+
+.post-panel{
+  width: 50%;
+}
