@@ -54,6 +54,19 @@ app.get('/home/', function(req, res){
 	});
 });
 
+app.get('/posts/', function(req, res){
+	db.cypher({
+		query: 'MATCH (p)-[posted:MADE]-(post:Post) RETURN p.username AS poster, posted.created AS created, post.content AS content'
+	}, function(err, results){
+		if(err){
+			console.log(err);
+			throw err;
+		}
+		results.sort(function(a, b) { return b.created - a.created });
+		res.render('post', {posts: results});
+	});
+});
+
 app.post('/post/new', function(req, res){
 	db.cypher({
 		query: 'MATCH (user:User {username: {username}}) CREATE (user)-[:MADE {created: {created}}]->(p:Post {content: {content}})',
@@ -88,6 +101,23 @@ app.post('/friends/', function(req, res){
 		//res.render('friendlist', {friends: results})
 		res.send(results);
 		res.end();
+	});
+});
+
+
+app.post('/filter/', function(req, res){
+	var searchQueries = req.body.queryElements;
+	var queries = searchQueries;
+	searchQueries = searchQueries.join(" ");
+	var whereQuery = " WHERE u.username =~ '.*" + queries[0] + "*.' OR p.content =~ '.*" + queries[0] + "*.'";
+	queries.shift();
+	queries.forEach(function(query){
+		whereQuery += " OR u.username =~ '.*" + query + "*.' OR p.content =~ '.*" + query + "*.'";
+	});
+	db.cypher({
+		query: 'MATCH (u:User)-[made:MADE]-(p:Post)' + whereQuery + ' RETURN u.username AS poster, made.created AS created, p.content AS content;'
+	}, function(err, results){
+		res.render('post', {posts: results, query: searchQueries});
 	});
 });
 
