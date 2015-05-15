@@ -28,6 +28,7 @@ jQuery(document).ready(function(){
 		if(queryElements == ""){
 			$.get('/posts/', function(data, success){
 				if(success){
+					$("#search-query").val("");
 					$(".post-area").html(data);
 				}
 			});
@@ -36,6 +37,7 @@ jQuery(document).ready(function(){
 			queryElements = queryElements.split(" ");
 			$.post('/filter/', {queryElements: queryElements}, function(data, success){
 				if(success){
+					$("#search-query").val("");
 					$(".post-area").html(data);
 				}
 			});

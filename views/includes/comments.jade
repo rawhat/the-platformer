@@ -1,0 +1,15 @@
+- each comment in comments
+	- var commenter = comment.username;
+	- var datePosted = comment.posted;
+	- var content = comment.content;
+	- var numLikes = comment.likes;
+	.user-post.well
+		p
+			| #{post.poster} posted:
+		.panel.panel-default
+			.panel-body
+				p
+					| #{post.content}
+			.panel-footer
+				p
+					| #{postDate}

@@ -43,7 +43,7 @@ app.post('/login/', function(req, res){
 
 app.get('/home/', function(req, res){
 	db.cypher({
-		query: 'MATCH (p)-[posted:MADE]-(post:Post) RETURN p.username AS poster, posted.created AS created, post.content AS content'
+		query: 'MATCH (p)-[posted:MADE]-(post:Post) RETURN p.username AS poster, posted.created AS created, post.content AS content, ID(post) AS postid'
 	}, function(err, results){
 		if(err){
 			console.log(err);
@@ -56,14 +56,14 @@ app.get('/home/', function(req, res){
 
 app.get('/posts/', function(req, res){
 	db.cypher({
-		query: 'MATCH (p)-[posted:MADE]-(post:Post) RETURN p.username AS poster, posted.created AS created, post.content AS content'
+		query: 'MATCH (p)-[posted:MADE]-(post:Post) RETURN p.username AS poster, posted.created AS created, post.content AS content, ID(post) AS postid'
 	}, function(err, results){
 		if(err){
 			console.log(err);
 			throw err;
 		}
 		results.sort(function(a, b) { return b.created - a.created });
-		res.render('post', {posts: results});
+		res.render('postlist', {posts: results});
 	});
 });
 
@@ -120,5 +120,15 @@ app.post('/filter/', function(req, res){
 		res.render('post', {posts: results, query: searchQueries});
 	});
 });
+/*
+app.post('/:postid/comment', function(req, res){
+	db.query({
+		query: "Match (u:User)-[made:POSTED]-(c:Comment)-[:HAS]-(p:Post) Where ID(p) = {id} Return u.username AS username, c.content AS content, c.likes AS likes, made.date AS posted",
+		params: {
+			id: {req.params.postid},
+		}, function(err, results){
+			res.render('comments', {comments: results});
+		}
+});*/
 
 app.listen(3000);

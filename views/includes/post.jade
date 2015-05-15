@@ -7,7 +7,7 @@ block content
 		- var postDate = new Date(0);
 		- postDate.setUTCSeconds(post.created);
 		- postDate = postDate.toLocaleString();
-		.user-post.well
+		.user-post.well(id="#{post.postid}")
 			p
 				| #{post.poster} posted:
 			.panel.panel-default
@@ -17,3 +17,5 @@ block content
 				.panel-footer
 					p
 						| #{postDate}
+			textarea(name="comment-box")
+			button.btn.btn-default(class="post-comment") Comment
