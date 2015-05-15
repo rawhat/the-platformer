@@ -1,4 +1,20 @@
-extend layout
+extends layout
 block content
-	include ./includes/post.jade
+	include includes/newpost.jade
+	include includes/searches.jade
 	script(src="/scripts/newpost.js")
+	.post-area
+		- each post in posts
+			- var postDate = new Date(0);
+			- postDate.setUTCSeconds(post.created);
+			- postDate = postDate.toLocaleString();
+				.user-post.well
+					p
+						| #{post.poster} posted:
+					.panel.panel-default
+						.panel-body
+							p
+								| #{post.content}
+						.panel-footer
+							p
+								| #{postDate}

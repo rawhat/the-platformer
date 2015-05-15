@@ -6,7 +6,7 @@
 	top: 0;
 	right: 0;
 	bottom: 0;
-	width: 270px;
+	width: 175px;
 }
 
 footer {
@@ -57,4 +57,9 @@ p.panel-header{
 
 .profile-pic{
 	padding: 15px;
+}
+
+.search-area{
+	position: relative;
+	height: 50px;
 }

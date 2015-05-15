@@ -18,8 +18,27 @@ jQuery(document).ready(function(){
 				}
 				else{
 					console.log('error');
-					return 'false';
+					return false;
 				}
 			});
+	});
+
+	$(".post-search").click(function(){
+		var queryElements = $("#search-query").val();
+		if(queryElements == ""){
+			$.get('/posts/', function(data, success){
+				if(success){
+					$(".post-area").html(data);
+				}
+			});
+		}
+		else{
+			queryElements = queryElements.split(" ");
+			$.post('/filter/', {queryElements: queryElements}, function(data, success){
+				if(success){
+					$(".post-area").html(data);
+				}
+			});
+		}
 	});
 });
