@@ -50,24 +50,7 @@ app.get('/posts/', function(req, res){
 			console.log(err);
 			throw err;
 		}
-		results.forEach(function(elem){
-			elem.comments = []
-			if(elem.commentUsernames.length > 0){
-				elem.commentUsernames.forEach(function(ele, index){
-					elem.comments[index] = {
-						commenter: elem.commentUsernames[index],
-						commentDate: elem.commentDates[index],
-						commentBodies: elem.commentBodies[index],
-						likes: elem.commentLikes[index],
-					}
-				});
-				elem.comments.sort(function(a, b){ return a.commentDate - b.commentDate });
-			}
-			delete elem.commentUsernames;
-			delete elem.commentBodies;
-			delete elem.commentDates;
-			delete elem.commentLikes;
-		});
+		parseComments(results);
 		results.sort(function(a, b) { return b.created - a.created });
 		res.render('postlist', {posts: results});
 	});
@@ -115,15 +98,19 @@ app.post('/filter/', function(req, res){
 	var searchQueries = req.body.queryElements;
 	var queries = searchQueries;
 	searchQueries = searchQueries.join(" ");
-	var whereQuery = " WHERE u.username =~ '.*" + queries[0] + "*.' OR p.content =~ '.*" + queries[0] + "*.'";
+	var whereQuery = " WHERE u.username =~ '.*" + queries[0] + "*.' OR post.content =~ '.*" + queries[0] + "*.'";
 	queries.shift();
 	queries.forEach(function(query){
-		whereQuery += " OR u.username =~ '.*" + query + "*.' OR p.content =~ '.*" + query + "*.'";
+		whereQuery += " OR u.username =~ '.*" + query + "*.' OR post.content =~ '.*" + query + "*.'";
 	});
 	db.cypher({
-		query: 'MATCH (u:User)-[made:MADE]-(p:Post)' + whereQuery + ' RETURN u.username AS poster, made.created AS created, p.content AS content;'
+		query: 	'MATCH (u:User)-[made:MADE]-(post:Post)' + ' OPTIONAL MATCH (post)-[:HAS]-(comment:Comment)-[commented:POSTED]-(v:User)' + whereQuery +
+				' RETURN u.username AS poster, made.created AS postCreated, post.content AS postContent, ID(post) AS postid, collect(comment.content) AS commentBodies, collect(commented.date) AS commentDates, collect(v.username) AS commentUsernames, collect(comment.likes) AS commentLikes'
 	}, function(err, results){
-		res.render('post', {posts: results, query: searchQueries});
+		if(err) throw err;
+		parseComments(results);
+		console.log(results);
+		res.render('includes/post', {posts: results, query: searchQueries});
 	});
 });
 
@@ -157,7 +144,13 @@ app.get('/post/:postid/', function(req, res){
 			postid: parseInt(req.params.postid),
 		}		
 	}, function(err, results){
-		results.forEach(function(elem){
+		parseComments(results);
+		res.render('includes/post', {posts: results});
+	});
+});
+
+function parseComments(resultSet){
+	resultSet.forEach(function(elem){
 			elem.comments = []
 			if(elem.commentUsernames.length > 0){
 				elem.commentUsernames.forEach(function(ele, index){
@@ -174,9 +167,8 @@ app.get('/post/:postid/', function(req, res){
 			delete elem.commentBodies;
 			delete elem.commentDates;
 			delete elem.commentLikes;
-		});
-		res.render('includes/post', {posts: results});
 	});
-});
+	console.log(resultSet);
+}
 
 app.listen(3000);
