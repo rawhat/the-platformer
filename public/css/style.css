@@ -63,3 +63,16 @@ p.panel-header{
 	position: relative;
 	height: 50px;
 }
+
+.post-comment{
+	width: 5em;
+}
+
+.comment-box{
+	margin-left: 10%;
+}
+
+.comment-area{
+	width: 75%;
+	margin-left: 10%;
+}

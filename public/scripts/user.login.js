@@ -8,7 +8,7 @@ jQuery(document).ready(function(){
         function(data, success){
           if(success){
             Cookies.set('username', uname, {expires: 1});
-            window.location.replace("/home/");
+            window.location.replace("/posts/");
           }
           else{
             jQuery("#error_box").show("slow");

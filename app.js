@@ -9,7 +9,6 @@ var app = express();
 
 app.set('views', './views');
 app.set('view engine', 'jade');
-//app.use(express.logger('dev'))
 
 app.use(express.static('./public'));
 app.use(bodyParser.json());
@@ -41,27 +40,34 @@ app.post('/login/', function(req, res){
 	});
 });
 
-app.get('/home/', function(req, res){
-	db.cypher({
-		query: 'MATCH (p)-[posted:MADE]-(post:Post) RETURN p.username AS poster, posted.created AS created, post.content AS content, ID(post) AS postid'
-	}, function(err, results){
-		if(err){
-			console.log(err);
-			throw err;
-		}
-		results.sort(function(a, b) { return b.created - a.created });
-		res.render('postlist', {posts: results, title: "Posts"});
-	});
-});
-
 app.get('/posts/', function(req, res){
 	db.cypher({
-		query: 'MATCH (p)-[posted:MADE]-(post:Post) RETURN p.username AS poster, posted.created AS created, post.content AS content, ID(post) AS postid'
+		query: 	'MATCH (p:User)-[posted:MADE]-(post:Post) ' +
+				'OPTIONAL MATCH (post)-[:HAS]-(comment:Comment)-[commented:POSTED]-(u:User) ' +
+				'RETURN p.username AS poster, posted.created AS postCreated, post.content AS postContent, ID(post) AS postid, collect(comment.content) AS commentBodies, collect(commented.date) AS commentDates, collect(u.username) AS commentUsernames, collect(comment.likes) AS commentLikes'
 	}, function(err, results){
 		if(err){
 			console.log(err);
 			throw err;
 		}
+		results.forEach(function(elem){
+			elem.comments = []
+			if(elem.commentUsernames.length > 0){
+				elem.commentUsernames.forEach(function(ele, index){
+					elem.comments[index] = {
+						commenter: elem.commentUsernames[index],
+						commentDate: elem.commentDates[index],
+						commentBodies: elem.commentBodies[index],
+						likes: elem.commentLikes[index],
+					}
+				});
+				elem.comments.sort(function(a, b){ return a.commentDate - b.commentDate });
+			}
+			delete elem.commentUsernames;
+			delete elem.commentBodies;
+			delete elem.commentDates;
+			delete elem.commentLikes;
+		});
 		results.sort(function(a, b) { return b.created - a.created });
 		res.render('postlist', {posts: results});
 	});
@@ -120,15 +126,57 @@ app.post('/filter/', function(req, res){
 		res.render('post', {posts: results, query: searchQueries});
 	});
 });
-/*
-app.post('/:postid/comment', function(req, res){
-	db.query({
-		query: "Match (u:User)-[made:POSTED]-(c:Comment)-[:HAS]-(p:Post) Where ID(p) = {id} Return u.username AS username, c.content AS content, c.likes AS likes, made.date AS posted",
+
+
+app.post('/post/:postid/comment', function(req, res){
+	db.cypher({
+		query: 	'MATCH (u:User), (p:Post) ' +
+				'WHERE ID(p) = {postid} AND u.username = {commenter} ' +
+				'CREATE (u)-[:POSTED {date: {commentDate}}]->(c:Comment {content: {commentBody}, likes: 0})-[:HAS]->(p)',
+		params:{
+			postid: parseInt(req.params.postid),
+			commenter: req.body.commenter,
+			commentDate: ((new Date()).getTime() / 1000),
+			commentBody: req.body.commentBody,
+		}		
+	}, function(err, results){
+		if(err) throw err;
+		res.sendStatus(200);
+		res.end();
+	});
+});
+
+
+app.get('/post/:postid/', function(req, res){
+	db.cypher({
+		query: 	'MATCH (p:User)-[posted:MADE]-(post:Post) ' +
+				'WHERE ID(post) = {postid} ' +
+				'OPTIONAL MATCH (post)-[:HAS]-(comment:Comment)-[commented:POSTED]-(u:User) ' +
+				'RETURN p.username AS poster, posted.created AS postCreated, post.content AS postContent, ID(post) AS postid, collect(comment.content) AS commentBodies, collect(commented.date) AS commentDates, collect(u.username) AS commentUsernames, collect(comment.likes) AS commentLikes',
 		params: {
-			id: {req.params.postid},
-		}, function(err, results){
-			res.render('comments', {comments: results});
-		}
-});*/
+			postid: parseInt(req.params.postid),
+		}		
+	}, function(err, results){
+		results.forEach(function(elem){
+			elem.comments = []
+			if(elem.commentUsernames.length > 0){
+				elem.commentUsernames.forEach(function(ele, index){
+					elem.comments[index] = {
+						commenter: elem.commentUsernames[index],
+						commentDate: elem.commentDates[index],
+						commentBodies: elem.commentBodies[index],
+						likes: elem.commentLikes[index],
+					}
+				});
+				elem.comments.sort(function(a, b){ return a.commentDate - b.commentDate });
+			}
+			delete elem.commentUsernames;
+			delete elem.commentBodies;
+			delete elem.commentDates;
+			delete elem.commentLikes;
+		});
+		res.render('includes/post', {posts: results});
+	});
+});
 
 app.listen(3000);

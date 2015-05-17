@@ -1,21 +1,20 @@
 block content
-	- if (locals.query)
-		.well
-			p.
-				#{query}
 	- each post in posts
 		- var postDate = new Date(0);
-		- postDate.setUTCSeconds(post.created);
+		- postDate.setUTCSeconds(post.postCreated);
 		- postDate = postDate.toLocaleString();
-		.user-post.well(id="#{post.postid}")
-			p
-				| #{post.poster} posted:
-			.panel.panel-default
-				.panel-body
-					p
-						| #{post.content}
-				.panel-footer
-					p
-						| #{postDate}
-			textarea(name="comment-box")
-			button.btn.btn-default(class="post-comment") Comment
+		.well
+			.user-post(id="#{post.postid}")
+				p
+					| #{post.poster} posted:
+				.panel.panel-default
+					.panel-body
+						p
+							| #{post.postContent}
+					.panel-footer
+						p
+							| #{postDate}
+					- var comments = post.comments;
+					include comments.jade
+					textarea.comment-box(rows="2", cols="30", val="")
+					button.btn.btn-default.post-comment Comment

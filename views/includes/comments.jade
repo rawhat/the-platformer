@@ -1,15 +1,16 @@
-- each comment in comments
-	- var commenter = comment.username;
-	- var datePosted = comment.posted;
-	- var content = comment.content;
-	- var numLikes = comment.likes;
-	.user-post.well
+each comment in comments
+	- var commenter = comment.commenter;
+	- var content = comment.commentBodies;
+	- var commentDate = new Date(0);
+	- commentDate.setUTCSeconds(comment.commentDate);
+	- commentDate = commentDate.toLocaleString();
+	.comment-area
 		p
-			| #{post.poster} posted:
+			| #{commenter} commented:
 		.panel.panel-default
 			.panel-body
 				p
-					| #{post.content}
+					| #{content}
 			.panel-footer
 				p
-					| #{postDate}
+					| #{commentDate}
