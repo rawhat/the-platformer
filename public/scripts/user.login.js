@@ -1,4 +1,8 @@
 jQuery(document).ready(function(){
+    if(Cookies.get('username') != null){
+      window.location.replace('/posts/');
+    }
+
     $("#login_button").click(function(){
       var uname = jQuery("#username").val();
       var pw = jQuery("#user_pass").val();

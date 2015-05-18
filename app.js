@@ -1,7 +1,8 @@
 var express = require('express')
  ,  jade = require('jade')
  ,	neo4j = require('neo4j')
- ,	bodyParser = require('body-parser');
+ ,	bodyParser = require('body-parser')
+ ,	cookieParser = require('cookie-parser');
 
 var db = new neo4j.GraphDatabase('http://localhost:7474');
 
@@ -13,6 +14,7 @@ app.set('view engine', 'jade');
 app.use(express.static('./public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 
 app.get('/', function(req, res){
 	res.render('index', {title : 'Platformer'})
@@ -93,7 +95,7 @@ app.post('/friends/', function(req, res){
 	});
 });
 
-
+/*
 app.post('/filter/', function(req, res){
 	var searchQueries = req.body.queryElements;
 	var queries = searchQueries;
@@ -109,10 +111,9 @@ app.post('/filter/', function(req, res){
 	}, function(err, results){
 		if(err) throw err;
 		parseComments(results);
-		console.log(results);
 		res.render('includes/post', {posts: results, query: searchQueries});
 	});
-});
+});*/
 
 
 app.post('/post/:postid/comment', function(req, res){
@@ -168,7 +169,6 @@ function parseComments(resultSet){
 			delete elem.commentDates;
 			delete elem.commentLikes;
 	});
-	console.log(resultSet);
 }
 
 app.listen(3000);

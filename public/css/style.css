@@ -60,8 +60,13 @@ p.panel-header{
 }
 
 .search-area{
-	position: relative;
 	height: 50px;
+	text-align: center;
+}
+
+.input-group{
+	position: relative;
+	width: 75%;
 }
 
 .post-comment{

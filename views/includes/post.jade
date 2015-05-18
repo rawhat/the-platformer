@@ -6,10 +6,11 @@ block content
 		.well
 			.user-post(id="#{post.postid}")
 				p
-					| #{post.poster} posted:
+					| <a href="/profile/#{post.poster}/" class="username">#{post.poster}</a> 
+					| posted:
 				.panel.panel-default
 					.panel-body
-						p
+						p.post-body
 							| #{post.postContent}
 					.panel-footer
 						p
