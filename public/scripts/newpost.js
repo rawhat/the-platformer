@@ -38,6 +38,7 @@ jQuery(document).ready(function(){
 			$.post('/filter/', {queryElements: queryElements}, function(data, success){
 				if(success){
 					$("#search-query").val("");
+					data = data.replace("<div class=\"well\">", "").substr(0, data.length-5);
 					$(".post-area").html(data);
 				}
 			});

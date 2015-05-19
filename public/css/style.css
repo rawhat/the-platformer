@@ -81,3 +81,16 @@ p.panel-header{
 	width: 75%;
 	margin-left: 10%;
 }
+
+.left-align{
+	float: left;
+}
+
+.right-align{
+	float: right;
+}
+
+.panel-footer{
+	height: 2em;
+	padding-bottom: 25px;
+}

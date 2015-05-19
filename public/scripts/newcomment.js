@@ -11,6 +11,7 @@ jQuery(document).ready(function(){
 				$.get('/post/' + postid + '/', function(data, success){
 					if(success){
 						$(".comment-box").val("");
+						data = data.replace("<div class=\"well\">", "").substr(0, data.length-5);
 						jQuery("#" + postid).html(data);
 					}
 				});

@@ -46,21 +46,21 @@ app.get('/posts/', function(req, res){
 	db.cypher({
 		query: 	'MATCH (p:User)-[posted:MADE]-(post:Post) ' +
 				'OPTIONAL MATCH (post)-[:HAS]-(comment:Comment)-[commented:POSTED]-(u:User) ' +
-				'RETURN p.username AS poster, posted.created AS postCreated, post.content AS postContent, ID(post) AS postid, collect(comment.content) AS commentBodies, collect(commented.date) AS commentDates, collect(u.username) AS commentUsernames, collect(comment.likes) AS commentLikes'
+				'RETURN p.username AS poster, posted.created AS postCreated, post.content AS postContent, ID(post) AS postid, post.likes AS postLikes, collect(comment.content) AS commentBodies, collect(commented.date) AS commentDates, collect(u.username) AS commentUsernames, collect(comment.likes) AS commentLikes'
 	}, function(err, results){
 		if(err){
 			console.log(err);
 			throw err;
 		}
 		parseComments(results);
-		results.sort(function(a, b) { return b.created - a.created });
+		results.sort(function(a, b) { return b.postCreated - a.postCreated });
 		res.render('postlist', {posts: results});
 	});
 });
 
 app.post('/post/new', function(req, res){
 	db.cypher({
-		query: 'MATCH (user:User {username: {username}}) CREATE (user)-[:MADE {created: {created}}]->(p:Post {content: {content}})',
+		query: 'MATCH (user:User {username: {username}}) CREATE (user)-[:MADE {created: {created}}]->(p:Post {content: {content}, likes: 0})',
 		params: {
 			username: req.body.curruser,
 			created: ((new Date).getTime() / 1000),
@@ -159,7 +159,7 @@ function parseComments(resultSet){
 						commenter: elem.commentUsernames[index],
 						commentDate: elem.commentDates[index],
 						commentBodies: elem.commentBodies[index],
-						likes: elem.commentLikes[index],
+						commentLikes: elem.commentLikes[index],
 					}
 				});
 				elem.comments.sort(function(a, b){ return a.commentDate - b.commentDate });

@@ -13,8 +13,8 @@ block content
 						p.post-body
 							| #{post.postContent}
 					.panel-footer
-						p
-							| #{postDate}
+						p.left-align #{postDate} 
+						p.right-align #{post.postLikes}
 					- var comments = post.comments;
 					include comments.jade
 					textarea.comment-box(rows="2", cols="30", val="")
