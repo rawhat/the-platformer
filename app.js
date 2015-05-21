@@ -150,6 +150,16 @@ app.get('/post/:postid/', function(req, res){
 	});
 });
 
+app.post('/post/:postid/like', function(req, res){
+	db.cypher({
+		query: 	'MATCH (p:Post), (u:User) ' +
+				'WHERE ID(p) = {postid} AND u.username = {curruser} ' + 
+				''
+	}, function(err, results){
+
+	});
+});
+
 function parseComments(resultSet){
 	resultSet.forEach(function(elem){
 			elem.comments = []

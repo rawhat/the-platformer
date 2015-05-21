@@ -1,0 +1,9 @@
+match (poster:User)-[datePosted:MADE]-(post:Post)
+optional match (post)<-[:HAS]-(comment:Comment)
+with comment, post, poster, datePosted
+optional match (comment)-[likes:LIKES]-(liker:User)
+with comment, count(likes) AS commentLikes, post, poster, collect(liker.username) AS commentLikers, datePosted
+optional match (post)-[likes:LIKES]-(liker:User)
+with comment, commentLikes, post, poster, commentLikers, count(likes) AS postLikes, collect(liker.username) AS postLikers, datePosted
+optional match (comment)-[dateCommented:POSTED]-(commenter:User)
+return poster.username, datePosted.created, post.content, postLikes, postLikers, collect({comment: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers});

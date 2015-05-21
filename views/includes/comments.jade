@@ -12,5 +12,8 @@ each comment in comments
 				p.comment-body
 					| #{content}
 			.panel-footer
-				p.left-align #{commentDate} 
-				p.right-align #{comment.commentLikes}
+				p.pull-left #{commentDate}
+				p.pull-right 
+					| #{comment.commentLikes} 
+					img(src="/img/png/glyphicons-344-thumbs-up.png", class="like-icon")
+				.clearfix

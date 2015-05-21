@@ -13,8 +13,11 @@ block content
 						p.post-body
 							| #{post.postContent}
 					.panel-footer
-						p.left-align #{postDate} 
-						p.right-align #{post.postLikes}
+						p.pull-left #{postDate} 
+						p.pull-right
+							| #{post.postLikes}
+							img(src="/img/png/glyphicons-344-thumbs-up.png", class="like-icon")
+						.clearfix
 					- var comments = post.comments;
 					include comments.jade
 					textarea.comment-box(rows="2", cols="30", val="")
