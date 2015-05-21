@@ -44,15 +44,21 @@ app.post('/login/', function(req, res){
 
 app.get('/posts/', function(req, res){
 	db.cypher({
-		query: 	'MATCH (p:User)-[posted:MADE]-(post:Post) ' +
-				'OPTIONAL MATCH (post)-[:HAS]-(comment:Comment)-[commented:POSTED]-(u:User) ' +
-				'RETURN p.username AS poster, posted.created AS postCreated, post.content AS postContent, ID(post) AS postid, post.likes AS postLikes, collect(comment.content) AS commentBodies, collect(commented.date) AS commentDates, collect(u.username) AS commentUsernames, collect(comment.likes) AS commentLikes'
-	}, function(err, results){
+			query: 	'match (poster:User)-[datePosted:MADE]-(post:Post) ' +
+				'optional match (post)<-[:HAS]-(comment:Comment) ' +
+				'with comment, post, poster, datePosted ' + 
+				'optional match (comment)-[likes:LIKES]-(liker:User) ' +
+				'with comment, count(likes) AS commentLikes, post, poster, collect(liker.username) AS commentLikers, datePosted ' +
+				'optional match (post)-[likes:LIKES]-(liker:User) ' +
+				'with comment, commentLikes, post, poster, commentLikers, count(likes) AS postLikes, collect(liker.username) AS postLikers, datePosted ' +
+				'optional match (comment)-[dateCommented:POSTED]-(commenter:User) ' +
+				'return poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers}) AS comments;',
+		}, function(err, results){
 		if(err){
 			console.log(err);
 			throw err;
 		}
-		parseComments(results);
+		//parseComments(results);
 		results.sort(function(a, b) { return b.postCreated - a.postCreated });
 		res.render('postlist', {posts: results});
 	});
@@ -162,6 +168,7 @@ app.post('/post/:postid/like', function(req, res){
 
 function parseComments(resultSet){
 	resultSet.forEach(function(elem){
+		console.log(elem);
 			elem.comments = []
 			if(elem.commentUsernames.length > 0){
 				elem.commentUsernames.forEach(function(ele, index){

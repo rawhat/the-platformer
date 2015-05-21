@@ -1,9 +1,10 @@
 each comment in comments
 	- var commenter = comment.commenter;
-	- var content = comment.commentBodies;
+	- var content = comment.commentContent;
 	- var commentDate = new Date(0);
-	- commentDate.setUTCSeconds(comment.commentDate);
+	- commentDate.setUTCSeconds(comment.date);
 	- commentDate = commentDate.toLocaleString();
+	if commenter != null
 	.comment-area
 		p
 			| #{commenter} commented:
@@ -14,6 +15,6 @@ each comment in comments
 			.panel-footer
 				p.pull-left #{commentDate}
 				p.pull-right 
-					| #{comment.commentLikes} 
+					| #{comment.likes} 
 					img(src="/img/png/glyphicons-344-thumbs-up.png", class="like-icon")
 				.clearfix
