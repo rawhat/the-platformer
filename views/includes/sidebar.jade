@@ -9,10 +9,7 @@ script.
 		$sidebar.trigger("sidebar:open");
 		$.post('/friends/', {curruser: Cookies.get("username")}, function(data, success){
 			if(success){
-				data.sort(function(a, b){ return a.username - b.username; });
-				$.each(data, function(){
-					$(".friends-area").append(this.friendname);
-				});
+				$(".friends-area").html(data);
 			}
 			else{
 				console.log("error");

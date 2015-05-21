@@ -3,6 +3,7 @@ jQuery(document).ready(function(){
 		var commentBody = jQuery(this).prev("textarea").val();
 		var commenter = Cookies.get("username");
 		var postid = jQuery(this).parent().parent().attr('id');
+
 		$.post('/post/' + postid + '/comment', {
 			commenter: commenter,
 			commentBody: commentBody,

@@ -15,10 +15,10 @@ block content
 					.panel-footer
 						p.pull-left #{postDate} 
 						p.pull-right
-							| #{post.postLikes} 
+							| <a href="/post/#{post.postid}/likers">#{post.postLikes}</a> 
 							img(src="/img/png/glyphicons-344-thumbs-up.png", class="like-icon")
 						.clearfix
-					- var comments = post.comments;
+					- var comments = post.comments
 					include comments.jade
 					textarea.comment-box(rows="2", cols="30", val="")
 					button.btn.btn-default.post-comment Comment

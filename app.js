@@ -52,14 +52,16 @@ app.get('/posts/', function(req, res){
 				'optional match (post)-[likes:LIKES]-(liker:User) ' +
 				'with comment, commentLikes, post, poster, commentLikers, count(likes) AS postLikes, collect(liker.username) AS postLikers, datePosted ' +
 				'optional match (comment)-[dateCommented:POSTED]-(commenter:User) ' +
-				'return poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers}) AS comments;',
+				'return ID(post) AS postid, poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers, commentid: ID(comment)}) AS comments;',
 		}, function(err, results){
 		if(err){
 			console.log(err);
 			throw err;
 		}
-		//parseComments(results);
-		results.sort(function(a, b) { return b.postCreated - a.postCreated });
+		results.sort(function(a, b) { return a.postCreated - b.postCreated });
+		results.forEach(function(elem){
+			elem.comments.sort(function(a, b) { return a.date - b.date });
+		});
 		res.render('postlist', {posts: results});
 	});
 });
@@ -90,14 +92,15 @@ app.get('/profile/:username', function(req, res){
 
 app.post('/friends/', function(req, res){
 	db.cypher({
-		query: 'MATCH (user:User {username: {curruser}})-[:FRIEND]-(user2:User) RETURN user2.username AS friendname',
+		query: 'MATCH (user:User {username: {curruser}})-[:FRIEND]-(user2:User) RETURN user2.username AS username',
 		params: {
-			curruser: "test"//req.params.curruser
+			curruser: req.body.curruser,
 		}
 	}, function(err, results){
-		//res.render('friendlist', {friends: results})
-		res.send(results);
-		res.end();
+		results.sort(function(a, b) { return a.username - b.username });
+		res.render('friendlist', {friendlist: results})
+		//res.send(results);
+		//res.end();
 	});
 });
 
@@ -126,7 +129,7 @@ app.post('/post/:postid/comment', function(req, res){
 	db.cypher({
 		query: 	'MATCH (u:User), (p:Post) ' +
 				'WHERE ID(p) = {postid} AND u.username = {commenter} ' +
-				'CREATE (u)-[:POSTED {date: {commentDate}}]->(c:Comment {content: {commentBody}, likes: 0})-[:HAS]->(p)',
+				'CREATE (u)-[:POSTED {date: {commentDate}}]->(c:Comment {content: {commentBody}})-[:HAS]->(p)',
 		params:{
 			postid: parseInt(req.params.postid),
 			commenter: req.body.commenter,
@@ -143,15 +146,23 @@ app.post('/post/:postid/comment', function(req, res){
 
 app.get('/post/:postid/', function(req, res){
 	db.cypher({
-		query: 	'MATCH (p:User)-[posted:MADE]-(post:Post) ' +
-				'WHERE ID(post) = {postid} ' +
-				'OPTIONAL MATCH (post)-[:HAS]-(comment:Comment)-[commented:POSTED]-(u:User) ' +
-				'RETURN p.username AS poster, posted.created AS postCreated, post.content AS postContent, ID(post) AS postid, collect(comment.content) AS commentBodies, collect(commented.date) AS commentDates, collect(u.username) AS commentUsernames, collect(comment.likes) AS commentLikes',
-		params: {
+		query: 	'match (poster:User)-[datePosted:MADE]-(post:Post) ' +
+				'where ID(post) = {postid} ' + 
+				'optional match (post)<-[:HAS]-(comment:Comment) ' +
+				'with comment, post, poster, datePosted ' + 
+				'optional match (comment)-[likes:LIKES]-(liker:User) ' +
+				'with comment, count(likes) AS commentLikes, post, poster, collect(liker.username) AS commentLikers, datePosted ' +
+				'optional match (post)-[likes:LIKES]-(liker:User) ' +
+				'with comment, commentLikes, post, poster, commentLikers, count(likes) AS postLikes, collect(liker.username) AS postLikers, datePosted ' +
+				'optional match (comment)-[dateCommented:POSTED]-(commenter:User) ' +
+				'return ID(post) AS postid, poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers, commentid: ID(comment)}) AS comments;',		params: {
 			postid: parseInt(req.params.postid),
 		}		
 	}, function(err, results){
-		parseComments(results);
+		results.sort(function(a, b) { return b.postCreated - a.postCreated });
+		results.forEach(function(elem){
+			elem.comments.sort(function(a, b) { return a.date - b.date });
+		});
 		res.render('includes/post', {posts: results});
 	});
 });
@@ -160,32 +171,45 @@ app.post('/post/:postid/like', function(req, res){
 	db.cypher({
 		query: 	'MATCH (p:Post), (u:User) ' +
 				'WHERE ID(p) = {postid} AND u.username = {curruser} ' + 
-				''
+				'CREATE (u)-[:LIKES]->(p) ' + 
+				'OPTIONAL MATCH (p)-[likes:LIKES]-() ' +
+				'RETURN count(likes) AS postLikes',
+		params:{
+			postid: req.params.postid,
+			curruser: "test",
+		}
 	}, function(err, results){
-
+		res.send(results);
+		res.end();
 	});
 });
 
-function parseComments(resultSet){
-	resultSet.forEach(function(elem){
-		console.log(elem);
-			elem.comments = []
-			if(elem.commentUsernames.length > 0){
-				elem.commentUsernames.forEach(function(ele, index){
-					elem.comments[index] = {
-						commenter: elem.commentUsernames[index],
-						commentDate: elem.commentDates[index],
-						commentBodies: elem.commentBodies[index],
-						commentLikes: elem.commentLikes[index],
-					}
-				});
-				elem.comments.sort(function(a, b){ return a.commentDate - b.commentDate });
-			}
-			delete elem.commentUsernames;
-			delete elem.commentBodies;
-			delete elem.commentDates;
-			delete elem.commentLikes;
+app.get('/post/:postid/likers', function(req, res){
+	db.cypher({
+		query: 	'MATCH (p:Post) ' +
+				'WHERE ID(p) = {postid} ' + 
+				'OPTIONAL MATCH (p)-[:LIKES]-(users:User) ' + 
+				'RETURN collect(users.username) AS likers',
+		params: {
+			postid: req.params.postid,
+		}
+	}, function(err, results){
+		res.render('liker-list', {likers: results});
 	});
-}
+});
+
+app.get('/comment/:commentid/likers', function(req, res){
+	db.cypher({
+		query: 	'MATCH (p:Post) ' +
+				'WHERE ID(p) = {commentid} ' + 
+				'OPTIONAL MATCH (p)-[:LIKES]-(users:User) ' + 
+				'RETURN collect(users.username) AS likers',
+		params: {
+			commentid: req.params.commentid,
+		}, 
+	}, function(err, results){
+		res.render('liker-list', {likers: results});
+	});
+});
 
 app.listen(3000);

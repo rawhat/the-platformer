@@ -1,3 +1,4 @@
 script(src="/scripts/friendslist.js")
-
-block sidebar-content
+- each friend in friendlist
+	- var eachFriend = friend
+	include includes/user-slide.jade
