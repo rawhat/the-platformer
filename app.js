@@ -2,7 +2,8 @@ var express = require('express')
  ,  jade = require('jade')
  ,	neo4j = require('neo4j')
  ,	bodyParser = require('body-parser')
- ,	cookieParser = require('cookie-parser');
+ ,	cookieParser = require('cookie-parser')
+ ,	unirest = require('unirest');
 
 var db = new neo4j.GraphDatabase('http://localhost:7474');
 
@@ -77,6 +78,85 @@ app.post('/post/new', function(req, res){
 	}, function(err, results){
 		if(err) throw err;
 		res.send(results);
+		res.end();
+	});
+});
+
+app.get('/reviews/:platform*?', function(req, res){
+	if(req.params.platform){
+
+	}
+	db.cypher({
+	}, function(err, results){
+
+	});
+});
+
+app.post('/reviews/new', function(req, res){
+	db.cypher({
+
+	}, function(err, results){
+
+	});
+});
+
+app.get('/reviews/:platform/scrape', function(req, res){
+	var platform = req.params.platform;
+	var gameUrls = [];
+	unirest.get("https://metacritic-2.p.mashape.com/game-list/" + platform + "/new-releases")
+	.header("X-Mashape-Key", "CnzoTLknEBmshl9WtjuLaLzqa5Wzp1oMLunjsnN2uPBnYdWamp")
+	.header("Accept", "application/json")
+	.end(function(results){
+		console.log(results);
+		result.body.results.forEach(function(gameObj){
+			gameUrls[gameUrls.length] = gameObj.url;
+		});
+		var trimmedUrls = [gameUrls[0], gameUrls[1]];
+		trimmedUrls.forEach(function(gameUrl){
+			unirest.get("https://metacritic-2.p.mashape.com/reviews?url=" + gameUrl)
+			.header("X-Mashape-Key", "CnzoTLknEBmshl9WtjuLaLzqa5Wzp1oMLunjsnN2uPBnYdWamp")
+			.header("Accept", "application/json")
+			.end(function(results){
+
+			});
+		});
+	});
+});
+
+app.get('/games/:platform*?/', function(req, res){
+	var query = "MATCH (g:Game) ";
+	if(req.params.platform){
+		query += "WHERE g.platform = " + req.params.platform + " ";
+	}
+	query += "RETURN g";
+	db.cypher({
+		query: query,
+	}, function(err, results){
+		res.render('gameslist', {games: results});
+	});
+});
+
+app.get('/games/:platform/scrape', function(req, res){
+	var platform = req.params.platform;
+	unirest.get("https://metacritic-2.p.mashape.com/game-list/" + platform + "/new-releases")
+	.header("X-Mashape-Key", "CnzoTLknEBmshl9WtjuLaLzqa5Wzp1oMLunjsnN2uPBnYdWamp")
+	.header("Accept", "application/json")
+	.end(function(results){
+		results.body.results.forEach(function(gameObj){
+			db.cypher({
+				query: "CREATE (g:Game {title: {title}, date: {releaseDate}, platform: {platform}, url: {url}})", // thumbUrl: {thumb}});",
+				params: {
+					title: gameObj.name,
+					releaseDate: gameObj.rlsdate,
+					platform: platform,
+					url: gameObj.url,
+					//thumb: gameObj.thumbnail,
+				},
+			}, function(err, results){
+				if(err) throw err;
+			});
+		});
+		res.sendStatus(200);
 		res.end();
 	});
 });
