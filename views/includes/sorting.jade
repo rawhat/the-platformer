@@ -1,5 +1,10 @@
-.btn-group.btn-group-justified(role="group")
+.btn-group.btn-group-justified.sort-area(role="group")
 	.btn-group(role="group")
-		button.btn.btn-default(type="button") Posts
+		a(href="/posts/")
+			button.btn.btn-default(type="button", id="posts-button", class=page === "posts" ? "active" : undefined) Posts
 	.btn-group(role="group")
-		button.btn.btn-default(type="button") Reviews
+		a(href="/reviews/")
+			button.btn.btn-default(type="button", id="reviews-button", class=page === "reviews" ? "active" : undefined) Reviews
+	.btn-group(role="group")
+		a(href="/games/")
+			button.btn.btn-default(type="button", id="games-button", class=page === "games" ? "active" : undefined) Games

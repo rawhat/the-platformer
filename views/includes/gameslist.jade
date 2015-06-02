@@ -1,0 +1,23 @@
+.games-area
+	- var counter = 0;
+	if games != null
+		table
+			tr
+				- each game in games
+					- if(counter % 3 == 0)
+						tr
+					- counter += 1;
+					td
+						.well.game-item
+							- var platform = game.platform.toUpperCase()
+							h4.title-bar
+								label(id="game-title") #{game.title}
+								label(id="game-platform") #{platform}
+							p
+								a(href="#{game.url}") Metacritic
+							p
+								| Release date:  #{game.releaseDate}
+								if !game.owned
+									<a href="" class="gameicon"> <img src="/img/png/glyphicons-191-circle-plus.png" /></a>
+								else
+									<a href="" class="gameicon"> <img src="/img/png/glyphicons-192-circle-minus.png" /></a>

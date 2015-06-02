@@ -17,8 +17,18 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
+app.get('*', function(req, res, next){
+	if(!req.cookies.username)
+		res.redirect('/login/');
+	else
+		return next();
+});
+
 app.get('/', function(req, res){
-	res.render('index', {title : 'Platformer'})
+	if(req.cookies.username)
+		res.redirect('/posts/');
+	else
+		res.render('index', {title : 'Platformer'})
 });
 
 app.post('/login/', function(req, res){
@@ -43,6 +53,30 @@ app.post('/login/', function(req, res){
 	});
 });
 
+app.get('/create/', function(req, res){
+	res.render('newuser.jade', {title: "New user"});
+});
+
+app.post('/create/', function(req, res){
+	db.cypher({
+		query: "CREATE (u:User {username: {username}, email: {email}, password: {password}});",
+		params: {
+			username: req.body.username,
+			email: req.body.email,
+			password: req.body.password,
+		}
+	}, function(err, results){
+		if(err){
+			res.send(false);
+			res.end();
+		}
+		else{
+			res.sendStatus(201);
+			res.end();
+		}
+	});
+});
+
 app.get('/posts/', function(req, res){
 	db.cypher({
 			query: 	'match (poster:User)-[datePosted:MADE]-(post:Post) ' +
@@ -63,7 +97,7 @@ app.get('/posts/', function(req, res){
 		results.forEach(function(elem){
 			elem.comments.sort(function(a, b) { return a.date - b.date });
 		});
-		res.render('postlist', {posts: results});
+		res.render('postlist', {posts: results, title: "Posts", curruser: req.cookies.username});
 	});
 });
 
@@ -71,7 +105,7 @@ app.post('/post/new', function(req, res){
 	db.cypher({
 		query: 'MATCH (user:User {username: {username}}) CREATE (user)-[:MADE {created: {created}}]->(p:Post {content: {content}, likes: 0})',
 		params: {
-			username: req.body.curruser,
+			username: req.cookies.username,
 			created: ((new Date).getTime() / 1000),
 			content: req.body.content,
 		}
@@ -82,24 +116,67 @@ app.post('/post/new', function(req, res){
 	});
 });
 
-app.get('/reviews/:platform*?', function(req, res){
-	if(req.params.platform){
-
-	}
+app.get('/reviews/', function(req, res){
 	db.cypher({
+		query: "MATCH (u:User), (g:Game) MATCH (u)-[review:REVIEWED]-(g) RETURN u.username AS reviewer, review.title AS title, review.rating AS rating, g.title AS game, g.platform AS platform, review.content AS content, review.snippet AS snippet",
 	}, function(err, results){
-
+		res.render('reviewlist', {reviews: results, title: "Reviews", curruser: req.cookies.username});
 	});
+});
+
+app.get('/reviews/new', function(req, res){
+	res.render('newreview');
 });
 
 app.post('/reviews/new', function(req, res){
 	db.cypher({
-
+		query:  "MATCH (u:User), (g:Game) " +
+				"WHERE u.username = {curruser} AND g.title = {game} " + 
+				"CREATE (u)-[:REVIEWED {title: {title}, rating: {rating}, snippet: {snippet}, content: {content}}]->(g)",
+		params: {
+			curruser: req.cookies.username,
+			title: req.body.reviewTitle,
+			rating: req.body.gameRating,
+			snippet: req.body.reviewSnippet,
+			content: req.body.reviewBody,
+			game: req.body.gameTitle,
+		}
 	}, function(err, results){
-
+		if(err) throw err;
+		res.sendStatus(200);
+		res.end();
 	});
 });
 
+app.post('/reviews/filter', function(req, res){
+	var query = "MATCH (u:User), (g:Game) MATCH (u)-[review:REVIEWED]-(g) ";
+	var searchQuery = "=~ '(?i)" + req.body.query + ".*'";
+	if(req.body.platforms){
+		req.body.platforms.forEach(function(platform, index){
+			if(index == 0)
+				query += "WHERE ";
+			else
+				query += "OR ";
+			query += "g.platform =~ '(?i).*" + platform + ".*' "
+		});
+	}
+	if(req.body.query && !req.body.platforms){
+		query += "WHERE ";
+	}
+	else if(req.body.query){
+		query += "OR u.username " + searchQuery + " OR review.title " + searchQuery + " OR review.content " + searchQuery + " OR g.title " + searchQuery + " ";
+	}
+	query += "RETURN u.username AS reviewer, review.title AS title, review.rating AS rating, g.title AS game, g.platform AS platform, review.content AS content, review.snippet AS snippet";
+	db.cypher({
+		query: query, 
+	}, function(err, results){
+		res.render('includes/review', {reviews: results});
+	});
+});
+
+/*		These are the Metacritic scrapers.  Disabled after first use which populated the database.		*/
+
+/*
 app.get('/reviews/:platform/scrape', function(req, res){
 	var platform = req.params.platform;
 	var gameUrls = [];
@@ -123,39 +200,116 @@ app.get('/reviews/:platform/scrape', function(req, res){
 	});
 });
 
-app.get('/games/:platform*?/', function(req, res){
-	var query = "MATCH (g:Game) ";
-	if(req.params.platform){
-		query += "WHERE g.platform = " + req.params.platform + " ";
-	}
-	query += "RETURN g";
-	db.cypher({
-		query: query,
-	}, function(err, results){
-		res.render('gameslist', {games: results});
-	});
-});
-
-app.get('/games/:platform/scrape', function(req, res){
+app.get('/games/scrape/:platform', function(req, res){
 	var platform = req.params.platform;
+	console.log("attempting to scrape games for " + platform);
 	unirest.get("https://metacritic-2.p.mashape.com/game-list/" + platform + "/new-releases")
 	.header("X-Mashape-Key", "CnzoTLknEBmshl9WtjuLaLzqa5Wzp1oMLunjsnN2uPBnYdWamp")
 	.header("Accept", "application/json")
 	.end(function(results){
+		console.log("inputting " + results);
 		results.body.results.forEach(function(gameObj){
+			query = "CREATE (g:Game {title: \"" + gameObj.name + "\", date: \"" + gameObj.rlsdate + "\", platform: \"" + platform + "\", url: \"" + gameObj.url + "\"";
+			if(gameObj.thumbnail){
+				query += ", thumbUrl: \"" + gameObj.thumnail + "\"});"
+			}
+			else{
+				query += "});";
+			}
 			db.cypher({
-				query: "CREATE (g:Game {title: {title}, date: {releaseDate}, platform: {platform}, url: {url}})", // thumbUrl: {thumb}});",
-				params: {
-					title: gameObj.name,
-					releaseDate: gameObj.rlsdate,
-					platform: platform,
-					url: gameObj.url,
-					//thumb: gameObj.thumbnail,
-				},
+				query: query,
 			}, function(err, results){
 				if(err) throw err;
+				res.sendStatus(200);
+				res.end();
 			});
 		});
+	});
+});
+*/
+
+app.get('/games/:platform*?/', function(req, res){
+	var query = "MATCH (g:Game) " + 
+				"OPTIONAL MATCH (u:User {username: \"" + req.cookies.username + "\"})-[owns:OWNS]-(g) ";
+	if(req.params.platform){
+		query += "WHERE g.platform = " + req.params.platform + " ";
+	}
+	query += "RETURN g.title AS title, g.platform AS platform, g.url AS url, g.thumb AS thumbnail, g.date AS releaseDate, owns IS NOT NULL as owned ";
+	query += "ORDER BY g.title ASC;"
+	db.cypher({
+		query: query,
+	}, function(err, results){
+		res.render('games', {games: results, title: "Games", curruser: req.cookies.username});
+	});
+});
+
+app.post('/games/filter', function(req, res){
+	var query = "MATCH (g:Game) ";
+	if(req.body.platforms){
+		req.body.platforms.forEach(function(platform, index){
+			if(index == 0)
+				query += "WHERE g.platform = \"" + platform.toLowerCase() + "\" ";
+			else
+				query += "OR g.platform = \"" + platform.toLowerCase() + "\" ";
+		});
+	}
+	if(req.body.query && !req.body.platforms){
+		query += "WHERE g.title =~ '(?i).*" + req.body.query + ".*' ";
+	}
+	else if(req.body.query){
+		query += "AND g.title =~ '(?i).*" + req.body.query + ".*' ";
+	}
+	query += "OPTIONAL MATCH (u {username: \"" + req.cookies.username + "\"})-[owns:OWNS]-(g) "
+	query += "RETURN g.title AS title, g.platform AS platform, g.url AS url, g.thumb AS thumbnail, g.date AS releaseDate, owns IS NOT NULL AS owned ";
+	query += "ORDER BY g.title ASC;"
+	db.cypher({
+		query: query,
+	}, function(err, results){
+		res.render('includes/gameslist', {games: results});
+	});
+});
+
+/*
+app.post('/games/filter/:title', function(req, res){
+	query = "MATCH (g:Game) WHERE g.title =~ '(?i)" + req.params.title + ".*' RETURN g.title AS gameTitle, g.platform AS gamePlatform;"
+	db.cypher({
+		query: query,
+		params: {
+			filter: req.params.title,
+		}
+	}, function(err, results){
+		if(err) throw err;
+		res.send(results);
+		res.end();
+	});
+});
+
+app.post('/games/filter/', function(req, res){
+	var myQuery = "MATCH (g:Game) WHERE g.title =~ '(?i)" + req.body.queryFilter + ".*' return g.title AS title, g.platform AS platform";
+	db.cypher({
+		query: myQuery,
+	}, function(err, results){
+		if(err) throw err;
+		res.json(results);
+		res.end();
+	});
+});
+*/
+
+app.post('/games/own/:title/:platform', function(req, res){
+	var query = "MATCH (u:User), (g:Game) " +
+				"WHERE u.username = \"" + req.cookies.username + "\" AND g.title = \"" + req.params.title + "\" AND g.platform = \"" + req.params.platform + "\" ";
+	if(req.body.adding == "true"){
+		query += "CREATE (u)-[:OWNS]->(g)";
+	}
+	else{
+		query += "MATCH (u)-[owns:OWNS]-(g) " +
+				"DELETE owns";
+	}
+	db.cypher({
+		query: 	query,
+	}, function(err, results){
+		if(err) throw err;
 		res.sendStatus(200);
 		res.end();
 	});
@@ -163,10 +317,13 @@ app.get('/games/:platform/scrape', function(req, res){
 
 app.get('/profile/:username', function(req, res){
 	db.cypher({
-		query: 'MATCH (user:User {username: {username}}) RETURN user.username AS username, user.email AS email',
+		query:  'MATCH (user:User {username: {username}}) ' + 
+				'OPTIONAL MATCH (user)-[:OWNS]-(game:Game) ' +
+				'RETURN user.username AS username, user.email AS email, collect(game) AS games',
 		params: {username: req.params.username},
 	}, function(err, results){
-		res.render('profile', {userinfo: results[0]})
+		console.log(results[0].games);
+		res.render('profile', {userinfo: results[0], title: req.params.username, curruser: req.cookies.username})
 	});
 });
 
@@ -212,7 +369,7 @@ app.post('/post/:postid/comment', function(req, res){
 				'CREATE (u)-[:POSTED {date: {commentDate}}]->(c:Comment {content: {commentBody}})-[:HAS]->(p)',
 		params:{
 			postid: parseInt(req.params.postid),
-			commenter: req.body.commenter,
+			commenter: req.cookies.username,
 			commentDate: ((new Date()).getTime() / 1000),
 			commentBody: req.body.commentBody,
 		}		
@@ -256,7 +413,7 @@ app.post('/post/:postid/like', function(req, res){
 				'RETURN count(likes) AS postLikes',
 		params:{
 			postid: req.params.postid,
-			curruser: "test",
+			curruser: req.cookies.username,
 		}
 	}, function(err, results){
 		res.send(results);
@@ -268,27 +425,37 @@ app.get('/post/:postid/likers', function(req, res){
 	db.cypher({
 		query: 	'MATCH (p:Post) ' +
 				'WHERE ID(p) = {postid} ' + 
-				'OPTIONAL MATCH (p)-[:LIKES]-(users:User) ' + 
+				'OPTIONAL MATCH (p)<-[:LIKES]-(users:User) ' + 
 				'RETURN collect(users.username) AS likers',
 		params: {
-			postid: req.params.postid,
+			postid: parseInt(req.params.postid),
 		}
 	}, function(err, results){
-		res.render('liker-list', {likers: results});
+		if(results[0].likers.length != 0)
+			res.render('liker-list', {likers: results[0].likers});
+		else{
+			res.send();
+			res.end();
+		}
 	});
 });
 
 app.get('/comment/:commentid/likers', function(req, res){
 	db.cypher({
-		query: 	'MATCH (p:Post) ' +
-				'WHERE ID(p) = {commentid} ' + 
-				'OPTIONAL MATCH (p)-[:LIKES]-(users:User) ' + 
+		query: 	'MATCH (c:Comment) ' +
+				'WHERE ID(c) = {commentid} ' + 
+				'OPTIONAL MATCH (c)-[:LIKES]-(users:User) ' + 
 				'RETURN collect(users.username) AS likers',
 		params: {
-			commentid: req.params.commentid,
+			commentid: parseInt(req.params.commentid),
 		}, 
 	}, function(err, results){
-		res.render('liker-list', {likers: results});
+		if(results[0].likers.length != 0)
+			res.render('liker-list', {likers: results[0].likers});
+		else{
+			res.send();
+			res.end();
+		}
 	});
 });
 

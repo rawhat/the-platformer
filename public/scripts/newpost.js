@@ -4,6 +4,11 @@ jQuery(document).ready(function(){
 		$("#show-new-post").hide("fast");
 	});
 
+	$("#cancel-post").click(function(){
+		$(".newpost").hide("fast");
+		$("#show-new-post").show("fast");
+	});
+
 	$("#submit-post").click(function(){
 		var postContent = $("#post-content").val();
 		jQuery.post("/post/new", 

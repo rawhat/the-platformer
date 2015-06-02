@@ -1,0 +1,13 @@
+extends layout
+block content
+	center.new-review-button
+		a(href="/reviews/new")
+			button.btn.btn-primary.newreview New Review
+	include includes/searches.jade
+	- var page = "reviews"
+	include includes/sorting.jade
+	script(src="/scripts/newcomment.js")
+	script(src="/scripts/likers.js")
+	script(src="/scripts/reviewfilter.js")
+	include includes/platformsorting.jade
+	include includes/review.jade

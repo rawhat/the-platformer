@@ -1,0 +1,19 @@
+extends layout
+block content
+	script(src="/scripts/signup.js")
+	.well.signup-area
+		h1 Sign Up
+		.form-group.email-group
+			label.control-label Email
+			.input-group.signup
+				input.form-control(id="email", type="email", placeholder="Email")
+				span.input-group-addon @example.com
+		.form-group.username-group
+			label.control-label Username
+			input.form-control.signup(id="username", placeholder="Username")
+		.form-group.password-group
+			label.control-label Password
+			input.form-control.signup(id="password", type="password", placeholder="Password")
+		center
+			button.btn.btn-default(id="sign-up") Sign Up
+			.alert

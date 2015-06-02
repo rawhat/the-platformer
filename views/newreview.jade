@@ -1,0 +1,53 @@
+extends layout
+block content
+	link(rel="stylesheet", href="/css/demo.css")
+	script(src="/scripts/Markdown.Converter.js")
+	script(src="/scripts/Markdown.Editor.js")
+	script(src="/scripts/Markdown.Sanitizer.js")
+	script(src="/scripts/newreview.js")
+	include includes/sorting.jade
+	.review-preview(hidden)
+		.wmd-preview.wmd-panel(id="wmd-preview")
+	.well
+		center
+			h1
+				| Review
+		table.review-elements
+			tr
+				th
+					| Review Title
+				td
+					input(id="review-title", placeholder="Review title")
+			tr
+				th
+					| Game Title
+				td
+					.ui-widget
+						input(id="game-title", placeholder="Game title")
+				td
+					select.form-control.platform-list
+						option PC
+						option PS4
+						option XBOXONE
+						option Wii-U
+
+			tr
+				th
+					| Rating
+				td
+					input(id="rating-spinner")
+			tr
+				th
+					| Snippet
+				td
+					textarea.form-control(id="review-snippet", maxlength=100)
+		br
+		h5
+			| <b>Review content</b>
+		.wmd-panel.well
+			.wmd-button-bar(id="wmd-button-bar")
+			textarea.wmd-input(id="wmd-input")
+		br
+		p
+				button.btn.btn-default.submit-review Submit Review 
+				button.btn.btn-default.preview-review Preview

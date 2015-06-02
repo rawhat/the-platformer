@@ -1,0 +1,8 @@
+extends layout
+block content
+	script(src="/scripts/gamesfilter.js")
+	- var page = "games"
+	include includes/platformsorting.jade
+	include includes/searches.jade
+	include includes/sorting.jade
+	include includes/gameslist.jade

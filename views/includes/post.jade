@@ -1,24 +1,17 @@
-block content
-	- each post in posts
-		- var postDate = new Date(0);
-		- postDate.setUTCSeconds(post.postCreated);
-		- postDate = postDate.toLocaleString();
-		.well
-			.user-post(id="#{post.postid}")
-				p
-					| <a href="/profile/#{post.poster}/" class="username">#{post.poster}</a> 
-					| posted:
-				.panel.panel-default
-					.panel-body
-						p.post-body
-							| #{post.postContent}
-					.panel-footer
-						p.pull-left #{postDate} 
-						p.pull-right
-							| <a href="/post/#{post.postid}/likers">#{post.postLikes}</a> 
-							img(src="/img/png/glyphicons-344-thumbs-up.png", class="like-icon")
-						.clearfix
-					- var comments = post.comments
-					include comments.jade
-					textarea.comment-box(rows="2", cols="30", val="")
-					button.btn.btn-default.post-comment Comment
+- var postDate = new Date(0);
+- postDate.setUTCSeconds(post.postCreated);
+- postDate = postDate.toLocaleString();
+.user-post(id="#{post.postid}")
+	p
+		| <a href="/profile/#{post.poster}/" class="username">#{post.poster}</a> 
+		| posted:
+	.panel.panel-default
+		.panel-body
+			p.post-body
+				| #{post.postContent}
+		.panel-footer
+			p.pull-left #{postDate} 
+			p.pull-right
+				| <a href="" class="show-post-likers">#{post.postLikes}</a> 
+				img(src="/img/png/glyphicons-344-thumbs-up.png", class="like-icon") 
+			.clearfix

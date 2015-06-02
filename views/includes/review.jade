@@ -1,0 +1,24 @@
+.reviews-area
+	if reviews != null
+		- each review in reviews
+			- var platform = review.platform.toUpperCase();
+			.panel.panel-default.review-item
+				.panel-heading.clearfix
+					h1.pull-left.
+						#{review.title}
+					.pull-right.review-header-right
+						p.
+							#{review.game} -- #{platform}
+						p
+							.rating-bar
+								script.
+									$('.rating-bar').progressbar({
+										value: #{review.rating} * 20,
+									}).children('.ui-progressbar-value').html(#{review.rating}*20 + '%').css('display', 'block');
+				.well.review-snippet.
+					#{review.snippet}
+				.full-review(hidden)
+					p
+						#{review.content}
+				.panel-footer.
+					reviewed by <a href="/profile/#{review.reviewer}">#{review.reviewer}</a>

@@ -17,3 +17,11 @@ block content
 				.panel-body
 					p.
 						#{userinfo.email}
+			if userinfo.games != null
+				.panel.panel-default
+					.panel-heading
+						p.panel-header.
+							Games
+					.panel-body
+						- each game in userinfo.games
+							include includes/gameitem.jade

@@ -4,11 +4,14 @@ html
 		title #{title} - Platformer
 		link(rel='stylesheet', href='/css/style.css')
 		link(rel='stylesheet', href='/css/bootstrap.css')
+		link(rel='stylesheet', href='/css/jquery-ui.css')
 		script(src="/scripts/jquery-2.1.4.min.js")
 		script(src="/scripts/bootstrap.js")
 		script(src="/scripts/js.cookie.js")
 		script(src="/scripts/jquery.sidebar.min.js")
+		script(src="/scripts/jquery-ui.js")
 		script(src="/scripts/navfunctions.js")
+		script(src="/scripts/logout.js")
 	body
 		header
 			include ./includes/navbar.jade
@@ -17,5 +20,8 @@ html
 				block content
 			.sidebar
 				include ./includes/sidebar.jade
-		footer
-			p node.js | express | jade
+		footer.site-footer
+			p.
+				<a href="http://nodejs.org/" class="footer-link">node.js</a> |
+				<a href="http://expressjs.com/" class="footer-link">express</a> |
+				<a href="http://jade-lang.com/" class="footer-link">jade</a>
