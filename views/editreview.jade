@@ -1,0 +1,55 @@
+extends layout
+block content
+	link(rel="stylesheet", href="/css/demo.css")
+	script(src="/scripts/Markdown.Converter.js")
+	script(src="/scripts/Markdown.Editor.js")
+	script(src="/scripts/Markdown.Sanitizer.js")
+	script(src="/scripts/updatereview.js")
+	.review-preview(hidden)
+		.wmd-preview.wmd-panel(id="wmd-preview")
+	.well.review-area(id="#{review.reviewId}")
+		- var gameRating = parseInt(review.rating)
+		- console.log("testing")
+		center
+			h1
+				| Review
+		table.review-elements
+			tr
+				th
+					| Review Title
+				td
+					input(id="review-title" value="#{review.title}")
+			tr
+				th
+					| Game Title
+				td
+					.ui-widget
+						input(id="game-title" disabled value="#{review.game}")
+				td
+					fieldset(disabled)
+						select.form-control.platform-list
+							option PC
+							option PS4
+							option XBOXONE
+							option Wii-U
+
+			tr
+				th
+					| Rating
+				td
+					input(id="rating-spinner" value="#{gameRating}")
+			tr
+				th
+					| Snippet
+				td
+					textarea.form-control(id="review-snippet", maxlength=100) #{review.snippet}
+		br
+		h5
+			| <b>Review content</b>
+		.wmd-panel.well
+			.wmd-button-bar(id="wmd-button-bar")
+			textarea.wmd-input(id="wmd-input") #{review.content}
+		br
+		p
+				button.btn.btn-default.update-review Update Review 
+				button.btn.btn-default.preview-review Preview

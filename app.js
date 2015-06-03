@@ -19,7 +19,7 @@ app.use(cookieParser());
 
 app.get('*', function(req, res, next){
 	if(!req.cookies.username)
-		res.redirect('/login/');
+		res.render('index', {title : 'Platformer'});
 	else
 		return next();
 });
@@ -118,10 +118,23 @@ app.post('/post/new', function(req, res){
 
 app.get('/reviews/', function(req, res){
 	db.cypher({
-		query: "MATCH (u:User), (g:Game) MATCH (u)-[review:REVIEWED]-(g) RETURN u.username AS reviewer, review.title AS title, review.rating AS rating, g.title AS game, g.platform AS platform, review.content AS content, review.snippet AS snippet",
+		query: "MATCH (u:User), (g:Game) MATCH (u)-[review:REVIEWED]-(g) RETURN u.username AS reviewer, review.title AS title, review.rating AS rating, g.title AS game, g.platform AS platform, review.content AS content, review.snippet AS snippet, ID(review) AS reviewId",
 	}, function(err, results){
 		res.render('reviewlist', {reviews: results, title: "Reviews", curruser: req.cookies.username});
 	});
+});
+
+app.get('/reviews/:id/edit', function(req, res){
+	db.cypher({
+		query: "MATCH (u:User), (g:Game) MATCH (u)-[review:REVIEWED]-(g) WHERE ID(review) = " + parseInt(req.params.id) + " RETURN u.username AS reviewer, review.title AS title, review.rating AS rating, g.title AS game, g.platform AS platform, review.content AS content, review.snippet AS snippet, ID(review) AS reviewId",
+	}, function(err, results){
+		if(err) throw err;
+		res.render('editreview', {review: results[0]});
+	});
+});
+
+app.post('/reviews/:id/edit', function(req, res){
+
 });
 
 app.get('/reviews/new', function(req, res){

@@ -2,7 +2,7 @@
 	if reviews != null
 		- each review in reviews
 			- var platform = review.platform.toUpperCase();
-			.panel.panel-default.review-item
+			.panel.panel-default.review-item(id="#{review.reviewId}")
 				.panel-heading.clearfix
 					h1.pull-left.
 						#{review.title}
