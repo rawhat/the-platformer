@@ -391,9 +391,11 @@ app.get('/profile/:username', function(req, res){
 	db.cypher({
 		query:  'MATCH (user:User {username: {username}}) ' + 
 				'OPTIONAL MATCH (user)-[:OWNS]-(game:Game) ' +
-				'RETURN user.username AS username, user.email AS email, collect(game) AS games',
+				'OPTIONAL MATCH (user)-[:FRIEND]-(user2:User) ' + 
+				'RETURN user.username AS username, user.email AS email, collect(game) AS games, collect(user2.username) AS friends',
 		params: {username: req.params.username},
 	}, function(err, results){
+		console.log(results[0]);
 		res.render('profile', {userinfo: results[0], title: req.params.username, curruser: req.cookies.username})
 	});
 });
@@ -435,6 +437,37 @@ app.get('/friends/', function(req, res){
 		res.render('friendlist', {friendslist: results})
 		//res.send(results);
 		//res.end();
+	});
+});
+
+app.post('/friends/add', function(req, res){
+	db.cypher({
+		query:  'MATCH (user:User), (user2:User) ' + 
+				'WHERE user.username = {curruser} AND user2.username = {friendname} ' + 
+				'CREATE UNIQUE (user)-[:FRIEND]->(user2)',
+		params: {
+			curruser: req.cookies.username,
+			friendname: req.body.friendname,
+		}
+	}, function(err, results){
+		if(err) throw err;
+		res.sendStatus(200).end();
+	});
+});
+
+app.post('/friends/remove', function(req, res){
+	db.cypher({
+		query:  'MATCH (user:User), (user2:User) ' + 
+				'WHERE user.username = {curruser} AND user2.username = {friendname} ' + 
+				'MATCH (user)-[friends:FRIEND]-(user2) ' + 
+				'DELETE friends',
+		params: {
+			curruser: req.cookies.username,
+			friendname: req.body.friendname,
+		}
+	}, function(err, results){
+		if(err) throw err;
+		res.sendStatus(200).end();
 	});
 });
 

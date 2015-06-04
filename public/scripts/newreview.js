@@ -31,7 +31,7 @@ jQuery(document).ready(function(){
 	});
 
 	$(".preview-review").click(function(){
-		$(".review-preview").dialog({width: 'auto'});
+		$(".review-preview").dialog({width: 'auto', minHeight: 350});
 	});
 
 	function setAutocomplete(stuff){
