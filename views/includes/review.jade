@@ -13,7 +13,7 @@ g.reviews-area
 							- var rating = review.rating * 20;
 							.progress-bar.progress-bar-warning(role="progressbar" aria-valuenow="#{rating}" aria-valuemin="0" aria-valuemax="100" style="width: #{rating}%; min-width: 4em;") #{rating} %
 				.well.review-snippet.
-					p #{review.snippet}
+					p. #{review.snippet}
 				.well.full-review(hidden) !{review.content}
 				.panel-footer.clearfix
 					p.pull-left
