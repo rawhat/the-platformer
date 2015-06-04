@@ -370,7 +370,6 @@ app.get('/profile/:username', function(req, res){
 				'RETURN user.username AS username, user.email AS email, collect(game) AS games',
 		params: {username: req.params.username},
 	}, function(err, results){
-		console.log(results[0].games);
 		res.render('profile', {userinfo: results[0], title: req.params.username, curruser: req.cookies.username})
 	});
 });
