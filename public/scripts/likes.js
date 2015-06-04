@@ -9,7 +9,7 @@ jQuery(document).ready(function(){
 			if(success){
 				$.get('/post/' + postId, function(data, success){
 					if(success){
-						$this.closest('.user-post').html(data);
+						$this.closest('.post-div').html(data);
 					}
 				});
 			}
@@ -24,7 +24,7 @@ jQuery(document).ready(function(){
 			if(success){
 				$.get('/post/' + postId, function(data, success){
 					if(success){
-						$this.closest('.user-post').html(data);
+						$this.closest('.post-div').html(data);
 					}
 				});
 			}
