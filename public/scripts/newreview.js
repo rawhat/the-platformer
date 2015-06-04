@@ -52,18 +52,41 @@ jQuery(document).ready(function(){
 
 	$('.submit-review').click(function(){
 		//console.log(converter.makeHtml($('#wmd-input').val()));ss
-		$.post('/reviews/new', {
+		var params = {
 			reviewTitle: $('#review-title').val(),
 			gameTitle: $('#game-title').val(),
 			platform: $('.platform-list option:selected').text().toLowerCase(),
 			gameRating: $('#rating-spinner').spinner("value"),
 			reviewSnippet: $('#review-snippet').val(),
 			reviewBody: $('.review-body').val(),
-		}, function(data, success){
-			if(success){
-				alert("review posted");
-				window.location.replace('/reviews/');
-			}
+		};
+
+		var allParams = true;
+
+		$.each(params, function(key, value){
+			if(value == "")
+				allParams = false;
 		});
+
+		if(allParams){
+			$.post('/reviews/new', {
+				reviewTitle: $('#review-title').val(),
+				gameTitle: $('#game-title').val(),
+				platform: $('.platform-list option:selected').text().toLowerCase(),
+				gameRating: $('#rating-spinner').spinner("value"),
+				reviewSnippet: $('#review-snippet').val(),
+				reviewBody: $('.review-body').val(),
+			}, function(data, success){
+				if(success){
+					$('.message-area').addClass('alert-success');
+					$('.message-area').html('Review successfully submitted!  Redirecting...');
+					window.location.replace('/reviews/');
+				}
+			});
+		}
+		else{
+			$('.message-area').addClass('alert-danger');
+			$('.message-area').html('You must fill out every field.');
+		}
 	});
 });

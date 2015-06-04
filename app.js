@@ -18,6 +18,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
+app.get('/create/', function(req, res){
+	res.render('newuser.jade', {title: "New user"});
+});
+
 app.get('*', function(req, res, next){
 	if(!req.cookies.username)
 		res.render('index', {title : 'Platformer'});
@@ -52,10 +56,6 @@ app.post('/login/', function(req, res){
 			res.send('true');
 		}
 	});
-});
-
-app.get('/create/', function(req, res){
-	res.render('newuser.jade', {title: "New user"});
 });
 
 app.post('/create/', function(req, res){
@@ -227,16 +227,19 @@ app.post('/reviews/filter', function(req, res){
 			}
 			else
 				query += "OR ";
-			query += "g.platform =~ '(?i).*" + platform + ".*' "
+			query += "g.platform =~ '(?i).*" + platform.toLowerCase() + ".*' "
 		});
 	}
-	if(!hasWhere){
-		query += "WHERE ";
+	if(req.body.query){
+		if(!hasWhere){
+			query += "WHERE ";
+		}
+		else{		
+			query += "OR ";
+		}
+
+		query += "u.username " + searchQuery + " OR review.title " + searchQuery + " OR review.content " + searchQuery + " OR g.title " + searchQuery + " ";
 	}
-	else{		
-		query += "OR ";
-	}
-	query += "u.username " + searchQuery + " OR review.title " + searchQuery + " OR review.content " + searchQuery + " OR g.title " + searchQuery + " ";
 	query += "RETURN u.username AS reviewer, review.title AS title, review.rating AS rating, g.title AS game, g.platform AS platform, review.content AS content, review.snippet AS snippet";
 	db.cypher({
 		query: query, 
@@ -392,10 +395,9 @@ app.get('/profile/:username', function(req, res){
 		query:  'MATCH (user:User {username: {username}}) ' + 
 				'OPTIONAL MATCH (user)-[:OWNS]-(game:Game) ' +
 				'OPTIONAL MATCH (user)-[:FRIEND]-(user2:User) ' + 
-				'RETURN user.username AS username, user.email AS email, collect(game) AS games, collect(user2.username) AS friends',
+				'RETURN user.username AS username, user.email AS email, user.twitchid AS twitchid, collect(game) AS games, collect(user2.username) AS friends',
 		params: {username: req.params.username},
 	}, function(err, results){
-		console.log(results[0]);
 		res.render('profile', {userinfo: results[0], title: req.params.username, curruser: req.cookies.username})
 	});
 });
@@ -404,7 +406,7 @@ app.get('/profile/:username/edit', function(req, res){
 	db.cypher({
 		query:  'MATCH (user:User {username: {username}}) ' + 
 				'OPTIONAL MATCH (user)-[:OWNS]-(game:Game) ' +
-				'RETURN user.username AS username, user.email AS email, user.password AS password, collect(game) AS games',
+				'RETURN user.username AS username, user.email AS email, user.password AS password, user.twitchid AS twitchid, collect(game) AS games',
 		params: {username: req.params.username},
 	}, function(err, results){
 		res.render('editprofile', {userinfo: results[0], title: req.params.username, curruser: req.cookies.username})
@@ -414,11 +416,12 @@ app.get('/profile/:username/edit', function(req, res){
 app.post('/profile/:username/edit', function(req, res){
 	db.cypher({
 		query:  'MATCH (user:User {username: {username}}) ' + 
-				'SET user.email = {email}, user.password = {password}',
+				'SET user.email = {email}, user.password = {password}, user.twitchid = {twitchid}',
 		params: {
 			username: req.params.username,
 			email: req.body.email,
 			password: req.body.pass,
+			twitchid: req.body.twitchid,
 		}
 	}, function(err, results){
 		if(err) throw err;

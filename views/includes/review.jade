@@ -1,4 +1,4 @@
-.reviews-area
+g.reviews-area
 	if reviews != null
 		- each review in reviews
 			- var platform = review.platform.toUpperCase();
@@ -6,20 +6,16 @@
 				.panel-heading.clearfix
 					h1.pull-left.
 						#{review.title}
-					.pull-right.review-header-right
+					.pull-right.review-header-right(style="width: 25%")
 						p.
 							#{review.game} -- #{platform}
-						.rating-bar(id="review#{review.reviewId}")
-							script.
-								$('#review' + #{review.reviewId}).progressbar({
-									value: #{review.rating} * 20,
-								}).children('.ui-progressbar-value').html(#{review.rating}*20 + '%').css('display', 'block');
-							
+						.progress
+							- var rating = review.rating * 20;
+							.progress-bar.progress-bar-warning(role="progressbar" aria-valuenow="#{rating}" aria-valuemin="0" aria-valuemax="100" style="width: #{rating}%; min-width: 4em;") #{rating} %
 				.well.review-snippet.
-					#{review.snippet}
-				.full-review(hidden)
-					p
-						!{review.content}
+					p #{review.snippet}
+				.well.full-review(hidden)
+					!{review.content}
 				.panel-footer.clearfix
 					p.pull-left
 						reviewed by <a href="/profile/#{review.reviewer}">#{review.reviewer}</a>

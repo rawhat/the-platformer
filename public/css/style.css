@@ -179,3 +179,12 @@ label{
 	width: 120px;
 	height: 50px;
 }
+
+div.bottom-area button{
+	margin: auto 5px;
+}
+
+.well.full-review{
+	padding: 10px;
+	margin: 15px;
+}

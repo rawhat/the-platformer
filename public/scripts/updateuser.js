@@ -5,9 +5,11 @@ jQuery(document).ready(function(){
 		var newPassword = $('#password').val();
 		var newEmail = $('#email').val();
 		var username = $('#username').text();
-		$.post('/profile/' + username + '/edit', {email: newEmail, pass: newPassword}, function(data, success){
+		var twitchId = $('#twitchid').val();
+		$.post('/profile/' + username + '/edit', {email: newEmail, pass: newPassword, twitchid: twitchId}, function(data, success){
 			if(success){
-				alert('User information successfully updated.');
+				$('.status-div').addClass('alert-success');
+				$('.status-div').html('Information successfully updated! Redirecting...');
 				window.location.replace('/profile/' + username);
 			}
 		});

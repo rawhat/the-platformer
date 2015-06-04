@@ -26,7 +26,17 @@ block content
 				.panel-body
 					p
 						input(id="email" value="#{userinfo.email}")
-			button.btn.btn-default(id="update-user") Update
+			.panel.panel-default
+				.panel-heading
+					p.panel-header.
+						Twitch Stream
+				.panel-body
+					p
+						input(id="twitchid", value="#{userinfo.twitchid}")
+			.update-area.clearfix
+				.pull-left
+					button.btn.btn-default(id="update-user") Update
+				.pull-right.alert.status-div(role="alert")
 			if userinfo.games != null
 				.panel.panel-default
 					.panel-heading

@@ -33,6 +33,14 @@ block content
 				.panel-body
 					p.
 						#{userinfo.email}
+			if userinfo.twitchid != ""
+				.panel.panel-default
+					.panel-heading
+						p.panel-header.
+							Twitch Stream
+					.panel-body
+						p
+							a(href="http://twitch.tv/#{userinfo.twitchid}") #{userinfo.twitchid}
 			if userinfo.games != null
 				.panel.panel-default
 					.panel-heading
