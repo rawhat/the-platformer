@@ -393,7 +393,29 @@ app.get('/profile/:username', function(req, res){
 });
 
 app.get('/profile/:username/edit', function(req, res){
-	res.render('editprofile', {title: "Edit Profile", curruser: req.cookies.username});
+	db.cypher({
+		query:  'MATCH (user:User {username: {username}}) ' + 
+				'OPTIONAL MATCH (user)-[:OWNS]-(game:Game) ' +
+				'RETURN user.username AS username, user.email AS email, user.password AS password, collect(game) AS games',
+		params: {username: req.params.username},
+	}, function(err, results){
+		res.render('editprofile', {userinfo: results[0], title: req.params.username, curruser: req.cookies.username})
+	});
+});
+
+app.post('/profile/:username/edit', function(req, res){
+	db.cypher({
+		query:  'MATCH (user:User {username: {username}}) ' + 
+				'SET user.email = {email}, user.password = {password}',
+		params: {
+			username: req.params.username,
+			email: req.body.email,
+			password: req.body.pass,
+		}
+	}, function(err, results){
+		if(err) throw err;
+		res.sendStatus(200).end();
+	});
 });
 
 app.get('/friends/', function(req, res){

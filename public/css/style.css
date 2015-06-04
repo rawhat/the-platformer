@@ -172,3 +172,10 @@ div.signup{
 label{
 	padding: 5px;
 }
+
+#update-user{
+	margin-bottom: 20px;
+	margin-left: 15px;
+	width: 120px;
+	height: 50px;
+}

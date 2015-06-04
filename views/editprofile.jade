@@ -1,28 +1,32 @@
 extends layout
 block content
 	include includes/sorting.jade
+	script(src="/scripts/updateuser.js")
 	.profile
 		.well
-			.icon-area.clearfix
-				.pull-left
-					img(src="/img/png/glyphicons-4-user.png", class="profile-pic")
-				.pull-right
-					if curruser == userinfo.username
-						<a href="/profile/#{userinfo.username}/edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
+			img(src="/img/png/glyphicons-4-user.png", class="profile-pic")
 			.panel.panel-default
 				.panel-heading
 					p(class="panel-header").
 						Username
 				.panel-body
-					p.
+					p(id="username").
 						#{userinfo.username}
+			.panel.panel-default
+				.panel-heading
+					p(class="panel-header").
+						Password
+				.panel-body
+					p
+						input(id="password" value="#{userinfo.password}" type="password")
 			.panel.panel-default
 				.panel-heading
 					p(class="panel-header").
 						Email
 				.panel-body
-					p.
-						#{userinfo.email}
+					p
+						input(id="email" value="#{userinfo.email}")
+			button.btn.btn-default(id="update-user") Update
 			if userinfo.games != null
 				.panel.panel-default
 					.panel-heading
