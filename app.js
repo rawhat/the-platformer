@@ -217,7 +217,7 @@ app.post('/reviews/new', function(req, res){
 
 app.post('/reviews/filter', function(req, res){
 	var query = "MATCH (u:User), (g:Game) MATCH (u)-[review:REVIEWED]-(g) ";
-	var searchQuery = "=~ '(?i)" + req.body.query + ".*'";
+	var searchQuery = "=~ '(?i).*" + req.body.query + ".*'";
 	var hasWhere = false;
 	if(req.body.platforms){
 		req.body.platforms.forEach(function(platform, index){
