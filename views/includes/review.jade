@@ -1,11 +1,7 @@
 .reviews-area
 	if reviews != null
-		script(src="/scripts/Markdown.Converter.js")
-		script(src="/scripts/Markdown.Editor.js")
-		script(src="/scripts/Markdown.Sanitizer.js")
 		- each review in reviews
 			- var platform = review.platform.toUpperCase();
-
 			.panel.panel-default.review-item(id="#{review.reviewId}")
 				.panel-heading.clearfix
 					h1.pull-left.
@@ -22,8 +18,8 @@
 				.well.review-snippet.
 					#{review.snippet}
 				.full-review(hidden)
-					p.
-						#{review.content}
+					p
+						!{review.content}
 				.panel-footer.clearfix
 					p.pull-left
 						reviewed by <a href="/profile/#{review.reviewer}">#{review.reviewer}</a>

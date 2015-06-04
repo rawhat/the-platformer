@@ -3,7 +3,8 @@ var express = require('express')
  ,	neo4j = require('neo4j')
  ,	bodyParser = require('body-parser')
  ,	cookieParser = require('cookie-parser')
- ,	unirest = require('unirest');
+ ,	unirest = require('unirest')
+ ,	pagedown = require('pagedown');
 
 var db = new neo4j.GraphDatabase('http://localhost:7474');
 
@@ -104,9 +105,9 @@ app.get('/posts/', function(req, res){
 	});
 });
 
-app.post('/post/new', function(req, res){
+app.post('/posts/new', function(req, res){
 	db.cypher({
-		query: 'MATCH (user:User {username: {username}}) CREATE (user)-[:MADE {created: {created}}]->(p:Post {content: {content}, likes: 0})',
+		query: 'MATCH (user:User {username: {username}}) CREATE (user)-[:MADE {created: {created}}]->(p:Post {content: {content}})',
 		params: {
 			username: req.cookies.username,
 			created: ((new Date).getTime() / 1000),
@@ -140,6 +141,11 @@ app.get('/reviews/', function(req, res){
 			curruser: req.cookies.username,
 		}
 	}, function(err, results){
+		var converter = new pagedown.Converter();
+		//var safeConverter = pagedown.getSantizingConverter();
+		results.forEach(function(elem){
+			elem.content = converter.makeHtml(elem.content);
+		});
 		res.render('reviewlist', {reviews: results, title: "Reviews", curruser: req.cookies.username});
 	});
 });

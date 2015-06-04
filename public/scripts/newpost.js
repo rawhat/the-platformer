@@ -11,9 +11,8 @@ jQuery(document).ready(function(){
 
 	$("#submit-post").click(function(){
 		var postContent = $("#post-content").val();
-		jQuery.post("/post/new", 
+		jQuery.post("/posts/new", 
 			{
-				curruser : Cookies.get('username'),
 				content : postContent, 
 			},
 			function(data, success){
