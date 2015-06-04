@@ -33,7 +33,7 @@ block content
 				.panel-body
 					p.
 						#{userinfo.email}
-			if userinfo.twitchid != ""
+			if userinfo.twitchid != "" or userinfo.twitchid != null
 				.panel.panel-default
 					.panel-heading
 						p.panel-header.
