@@ -7,14 +7,10 @@ block content
 	script(src="/scripts/newpost.js")
 	script(src="/scripts/newcomment.js")
 	script(src="/scripts/likers.js")
+	script(src="/scripts/likes.js")
 	script(src="/scripts/postfilter.js")
 	.liker-popup
 	.post-area
 		- each post in posts
-			.well
+			.well.post-div
 				include includes/post.jade
-				- var comments = post.comments
-				- each comment in comments
-					include includes/comment.jade
-				textarea.comment-box(rows="2", cols="30", val="")
-				button.btn.btn-default.post-comment Comment

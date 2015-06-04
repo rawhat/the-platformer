@@ -1,10 +1,15 @@
-- var currUser = "test"
 - var commenter = comment.commenter;
 - var content = comment.commentContent;
 - var likers = comment.commentLikers;
 - var commentDate = new Date(0);
 - commentDate.setUTCSeconds(comment.date);
 - commentDate = commentDate.toLocaleString();
+if comment.likers != null
+	- var currUserLiked = false;
+	- each liker in comment.likers
+		if liker == curruser
+			- currUserLiked = true;
+
 if commenter != null
 	.comment-area(id="#{comment.commentid}")
 		.top-bar.clearfix
@@ -20,9 +25,9 @@ if commenter != null
 			.panel-footer
 				p.pull-left #{commentDate}
 				p.pull-right 
-					| <a href="" class="show-comment-likers">#{comment.likes}</a>
-					if likers != null && currUser in comment.commentLikers
-						img(src="/img/png/glyphicons-345-thumbs-down.png", class="like-icon")
+					| <a href="" class="show-comment-likers"> #{comment.likes} </a>
+					if currUserLiked
+						<a href="" class="comment-dislike-button"> <img src="/img/png/glyphicons-345-thumbs-down.png" class="like-icon" /> </a>
 					else
-						img(src="/img/png/glyphicons-344-thumbs-up.png", class="like-icon")
+						<a href="" class="comment-like-button"> <img src="/img/png/glyphicons-344-thumbs-up.png" class="like-icon" /> </a> 
 				.clearfix

@@ -1,7 +1,8 @@
 jQuery(document).ready(function(){
-	$(".user-post").on('click', '.post-comment', function(){
+	$(".post-div").on('click', '.post-comment', function(){
 		var commentBody = jQuery(this).prev("textarea").val();
-		var postid = jQuery(this).parent().parent().attr('id');
+		var postid = $(this).siblings('.user-post').attr('id');
+		var $this = $(this);
 
 		$.post('/post/' + postid + '/comment', {
 			commentBody: commentBody,
@@ -10,8 +11,7 @@ jQuery(document).ready(function(){
 				$.get('/post/' + postid + '/', function(data, success){
 					if(success){
 						$(".comment-box").val("");
-						data = data.replace("<div class=\"well\">", "").substr(0, data.length-5);
-						jQuery("#" + postid).html(data);
+						$this.closest('.post-div').html(data);
 					}
 				});
 			}

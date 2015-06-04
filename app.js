@@ -374,15 +374,15 @@ app.get('/profile/:username', function(req, res){
 	});
 });
 
-app.post('/friends/', function(req, res){
+app.get('/friends/', function(req, res){
 	db.cypher({
 		query: 'MATCH (user:User {username: {curruser}})-[:FRIEND]-(user2:User) RETURN user2.username AS username',
 		params: {
-			curruser: req.body.curruser,
+			curruser: req.cookies.username,
 		}
 	}, function(err, results){
 		results.sort(function(a, b) { return a.username - b.username });
-		res.render('friendlist', {friendlist: results})
+		res.render('friendlist', {friendslist: results})
 		//res.send(results);
 		//res.end();
 	});
@@ -439,15 +439,17 @@ app.get('/post/:postid/', function(req, res){
 				'optional match (post)-[likes:LIKES]-(liker:User) ' +
 				'with comment, commentLikes, post, poster, commentLikers, count(likes) AS postLikes, collect(liker.username) AS postLikers, datePosted ' +
 				'optional match (comment)-[dateCommented:POSTED]-(commenter:User) ' +
-				'return ID(post) AS postid, poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers, commentid: ID(comment)}) AS comments;',		params: {
+				'return ID(post) AS postid, poster.username = {curruser} AS editable, poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers, commentid: ID(comment), editable: commenter.username = {curruser}}) AS comments;',		
+				params: {
 			postid: parseInt(req.params.postid),
+			curruser: req.cookies.username,
 		}		
 	}, function(err, results){
 		results.sort(function(a, b) { return b.postCreated - a.postCreated });
 		results.forEach(function(elem){
 			elem.comments.sort(function(a, b) { return a.date - b.date });
 		});
-		res.render('includes/post', {posts: results});
+		res.render('includes/post', {post: results[0], curruser: req.cookies.username});
 	});
 });
 
@@ -455,15 +457,64 @@ app.post('/post/:postid/like', function(req, res){
 	db.cypher({
 		query: 	'MATCH (p:Post), (u:User) ' +
 				'WHERE ID(p) = {postid} AND u.username = {curruser} ' + 
-				'CREATE (u)-[:LIKES]->(p) ' + 
-				'OPTIONAL MATCH (p)-[likes:LIKES]-() ' +
-				'RETURN count(likes) AS postLikes',
+				'CREATE UNIQUE (u)-[:LIKES]->(p) ',
 		params:{
-			postid: req.params.postid,
+			postid: parseInt(req.params.postid),
 			curruser: req.cookies.username,
 		}
 	}, function(err, results){
-		res.send(results);
+		if(err) throw err;
+		res.sendStatus(200);
+		res.end();
+	});
+});
+
+app.post('/post/:postid/dislike', function(req, res){
+	db.cypher({
+		query:  'MATCH (p:Post), (u:User) ' +
+				'WHERE ID(p) = {postid} AND u.username = {curruser} ' +
+				'MATCH (u)-[likes:LIKES]-(p) ' + 
+				'DELETE likes',
+		params: {
+			postid: parseInt(req.params.postid),
+			curruser: req.cookies.username,
+		}
+	}, function(err, results){
+		if(err) throw err;
+		res.sendStatus(200);
+		res.end();
+	});
+});
+
+app.post('/comment/:commentid/like', function(req, res){
+	db.cypher({
+		query: 	'MATCH (c:Comment), (u:User) ' +
+				'WHERE ID(c) = {commentid} AND u.username = {curruser} ' + 
+				'CREATE UNIQUE (u)-[:LIKES]->(c) ',
+		params:{
+			commentid: parseInt(req.params.commentid),
+			curruser: req.cookies.username,
+		}
+	}, function(err, results){
+		if(err) throw err;
+		res.sendStatus(200);
+		res.end();
+	});
+});
+
+app.post('/comment/:commentid/dislike', function(req, res){
+	db.cypher({
+		query:  'MATCH (c:Comment), (u:User) ' +
+				'WHERE ID(c) = {commentid} AND u.username = {curruser} ' +
+				'MATCH (u)-[likes:LIKES]-(c) ' + 
+				'DELETE likes',
+		params: {
+			commentid: parseInt(req.params.commentid),
+			curruser: req.cookies.username,
+		}
+	}, function(err, results){
+		if(err) throw err;
+		res.sendStatus(200);
 		res.end();
 	});
 });

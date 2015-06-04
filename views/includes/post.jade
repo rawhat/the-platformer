@@ -1,6 +1,12 @@
 - var postDate = new Date(0);
 - postDate.setUTCSeconds(post.postCreated);
 - postDate = postDate.toLocaleString();
+- var currUserLiked = false;
+if post.postLikers != null
+	- each liker in post.postLikers
+		if liker == curruser
+			- currUserLiked = true;
+
 .user-post(id="#{post.postid}")
 	.top-bar.clearfix
 		p.pull-left
@@ -16,5 +22,13 @@
 			p.pull-left #{postDate} 
 			p.pull-right
 				| <a href="" class="show-post-likers">#{post.postLikes}</a> 
-				img(src="/img/png/glyphicons-344-thumbs-up.png", class="like-icon") 
+				if currUserLiked
+					<a href="" class="post-dislike-button"> <img src="/img/png/glyphicons-345-thumbs-down.png" class="like-icon" /></a>
+				else
+					<a href="" class="post-like-button"> <img src="/img/png/glyphicons-344-thumbs-up.png" class="like-icon" /></a> 
 			.clearfix
+- var comments = post.comments
+- each comment in comments
+	include comment.jade
+textarea.comment-box(rows="2", cols="30", val="")
+button.btn.btn-default.post-comment Comment
