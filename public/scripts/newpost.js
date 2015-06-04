@@ -19,7 +19,7 @@ jQuery(document).ready(function(){
 			function(data, success){
 				if(success){
 					$("#post-content").val("");
-					window.location.replace("/home/");
+					window.location.replace("/");
 				}
 				else{
 					console.log('error');

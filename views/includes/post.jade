@@ -13,7 +13,8 @@ if post.postLikers != null
 			<a href="/profile/#{post.poster}/" class="username">#{post.poster}</a> posted:
 		p.pull-right
 			if post.editable
-				<a href="/posts/#{post.postid}/edit" class="post-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
+				| <a href="" class="post-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
+				| <a href="" class="post-delete"> <img src="/img/png/glyphicons-17-bin.png" /></a>
 	.panel.panel-default
 		.panel-body
 			p.post-body

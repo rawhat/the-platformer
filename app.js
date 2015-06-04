@@ -87,7 +87,7 @@ app.get('/posts/', function(req, res){
 				'optional match (post)-[likes:LIKES]-(liker:User) ' +
 				'with comment, commentLikes, post, poster, commentLikers, count(likes) AS postLikes, collect(liker.username) AS postLikers, datePosted ' +
 				'optional match (comment)-[dateCommented:POSTED]-(commenter:User) ' +
-				'return ID(post) AS postid, poster.username = {curruser} AS editable, poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers, commentid: ID(comment), editable: commenter.username = {curruser}}) AS comments;',
+				'return ID(post) AS postid, poster.username = {curruser} AS editable, poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers, commentid: ID(comment), editable: commenter.username = {curruser}}) AS comments ',
 			params: {
 				curruser: req.cookies.username,
 			}
@@ -96,7 +96,7 @@ app.get('/posts/', function(req, res){
 			console.log(err);
 			throw err;
 		}
-		results.sort(function(a, b) { return a.postCreated - b.postCreated });
+		results.sort(function(a, b) { return b.postCreated - a.postCreated });
 		results.forEach(function(elem){
 			elem.comments.sort(function(a, b) { return a.date - b.date });
 		});
@@ -171,8 +171,12 @@ app.post('/reviews/:id/edit', function(req, res){
 	});
 });
 
+app.post('/reviews/:id/delete', function(req, res){
+
+});
+
 app.get('/reviews/new', function(req, res){
-	res.render('newreview');
+	res.render('newreview', {title: "New Review", curruser: req.cookies.username});
 });
 
 app.post('/reviews/new', function(req, res){
@@ -333,12 +337,12 @@ app.post('/games/filter/:title', function(req, res){
 */
 
 app.post('/games/filter/:query', function(req, res){
-	var myQuery = "MATCH (g:Game) WHERE g.title =~ '(?i)" + req.body.queryFilter + ".*' return g.title AS title, g.platform AS platform";
+	var myQuery = "MATCH (g:Game) WHERE g.title =~ '(?i)" + req.params.query + ".*' return g.title AS title, g.platform AS platform";
 	db.cypher({
 		query: myQuery,
 	}, function(err, results){
 		if(err) throw err;
-		res.json(results);
+		res.send(results);
 		res.end();
 	});
 });
@@ -372,6 +376,10 @@ app.get('/profile/:username', function(req, res){
 	}, function(err, results){
 		res.render('profile', {userinfo: results[0], title: req.params.username, curruser: req.cookies.username})
 	});
+});
+
+app.get('/profile/:username/edit', function(req, res){
+	res.render('editprofile', {title: "Edit Profile", curruser: req.cookies.username});
 });
 
 app.get('/friends/', function(req, res){
@@ -570,5 +578,38 @@ app.post('/comments/:commentid/edit', function(req, res){
 		res.end();
 	});
 });
+
+app.post('/comments/:commentid/delete', function(req, res){
+	db.cypher({
+		query:  "MATCH (c:Comment) WHERE ID(c) = {id} " +
+				"MATCH ()-[r]-(c) " +
+				"DELETE c, r",
+		params: {
+			id: parseInt(req.params.commentid),
+		}
+	}, function(err, results){
+		if(err) throw err;
+		res.sendStatus(200);
+		res.end();
+	});
+});
+
+app.post('/posts/:postid/delete', function(req, res){
+	db.cypher({
+		query:  "MATCH (p:Post) WHERE ID(p) = {postid} " + 
+				"OPTIONAL MATCH (c:Comment)-[:HAS]-(p) with c, p " +
+				"OPTIONAL MATCH (c)-[r]-() WITH c, r, p " + 
+				"OPTIONAL MATCH ()-[l]-(p) WITH c, r, p, l " +
+				"DELETE c, r, p, l",
+		params: {
+			postid: parseInt(req.params.postid),
+		}
+	}, function(err, results){
+		if(err) throw err;
+		res.sendStatus(200);
+		res.end();
+	});
+});
+
 
 app.listen(3000);

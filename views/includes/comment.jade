@@ -17,7 +17,8 @@ if commenter != null
 				<a href="/profile/#{commenter}/">#{commenter}</a> commented:
 			p.pull-right
 				if comment.editable
-					<a href="/comments/#{comment.commentid}/edit" class="comment-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
+					| <a href="" class="comment-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
+					| <a href="" class="comment-delete"> <img src="/img/png/glyphicons-17-bin.png" /></a>
 		.panel.panel-default
 			.panel-body
 				p.comment-body
