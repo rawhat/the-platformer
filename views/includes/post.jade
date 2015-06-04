@@ -2,9 +2,12 @@
 - postDate.setUTCSeconds(post.postCreated);
 - postDate = postDate.toLocaleString();
 .user-post(id="#{post.postid}")
-	p
-		| <a href="/profile/#{post.poster}/" class="username">#{post.poster}</a> 
-		| posted:
+	.top-bar.clearfix
+		p.pull-left
+			<a href="/profile/#{post.poster}/" class="username">#{post.poster}</a> posted:
+		p.pull-right
+			if post.editable
+				<a href="/posts/#{post.postid}/edit" class="post-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
 	.panel.panel-default
 		.panel-body
 			p.post-body

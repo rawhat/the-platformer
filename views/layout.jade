@@ -12,10 +12,13 @@ html
 		script(src="/scripts/jquery-ui.js")
 		script(src="/scripts/navfunctions.js")
 		script(src="/scripts/logout.js")
+		script(src="/scripts/editor.js")
 	body
 		header
 			include ./includes/navbar.jade
 		.container
+			.editor-dialog(hidden)
+				input.form-control(id="edited-data")
 			.main-content
 				block content
 			.sidebar

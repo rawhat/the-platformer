@@ -15,18 +15,16 @@ jQuery(document).ready(function(){
 		$(".review-preview").dialog({width: 'auto'});
 	});
 
-	$('.submit-review').click(function(){
-		console.log(converter.makeHtml($('#wmd-input').val()));
-		/*
-		$.post('/reviews/new', {
+	$('.update-review').click(function(){
+		var reviewId = $('.review-area').attr('id');
+		$.post('/reviews/' + reviewId + '/edit/', {
 			reviewTitle: $('#review-title').val(),
-			gameTitle: $('#game-title').val(),
 			gameRating: $('#rating-spinner').spinner("value"),
 			reviewSnippet: $('#review-snippet').val(),
-			reviewBody: converter.makeHtml($('#wmd-input').val()),
+			reviewBody: $('#wmd-input').val(),
 		}, function(data, success){
 			if(success)
-				alert("review posted");
-		});*/
+				alert("review updated");
+		});
 	});
 });

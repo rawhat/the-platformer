@@ -87,7 +87,10 @@ app.get('/posts/', function(req, res){
 				'optional match (post)-[likes:LIKES]-(liker:User) ' +
 				'with comment, commentLikes, post, poster, commentLikers, count(likes) AS postLikes, collect(liker.username) AS postLikers, datePosted ' +
 				'optional match (comment)-[dateCommented:POSTED]-(commenter:User) ' +
-				'return ID(post) AS postid, poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers, commentid: ID(comment)}) AS comments;',
+				'return ID(post) AS postid, poster.username = {curruser} AS editable, poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers, commentid: ID(comment), editable: commenter.username = {curruser}}) AS comments;',
+			params: {
+				curruser: req.cookies.username,
+			}
 		}, function(err, results){
 		if(err){
 			console.log(err);
@@ -116,9 +119,26 @@ app.post('/post/new', function(req, res){
 	});
 });
 
+app.post('/posts/:postid/edit', function(req, res){
+	db.cypher({
+		query: "MATCH (p:Post) WHERE ID(p) = {id} SET p.content = {newcontent}",
+		params: {
+			id: parseInt(req.params.postid),
+			newcontent: req.body.newcontent,
+		}
+	}, function(err, results){
+		if(err) throw err;
+		res.sendStatus(200);
+		res.end();
+	});
+});
+
 app.get('/reviews/', function(req, res){
 	db.cypher({
-		query: "MATCH (u:User), (g:Game) MATCH (u)-[review:REVIEWED]-(g) RETURN u.username AS reviewer, review.title AS title, review.rating AS rating, g.title AS game, g.platform AS platform, review.content AS content, review.snippet AS snippet, ID(review) AS reviewId",
+		query: "MATCH (u:User), (g:Game) MATCH (u)-[review:REVIEWED]-(g) RETURN u.username AS reviewer, review.title AS title, review.rating AS rating, g.title AS game, g.platform AS platform, review.content AS content, review.snippet AS snippet, ID(review) AS reviewId, u.username = {curruser} AS editable",
+		params: {
+			curruser: req.cookies.username,
+		}
 	}, function(err, results){
 		res.render('reviewlist', {reviews: results, title: "Reviews", curruser: req.cookies.username});
 	});
@@ -134,7 +154,21 @@ app.get('/reviews/:id/edit', function(req, res){
 });
 
 app.post('/reviews/:id/edit', function(req, res){
-
+	db.cypher({
+		query: "MATCH (u:User), (g:Game) MATCH (u)-[review:REVIEWED]-(g) WHERE ID(review) = {reviewId} " + 
+		" SET review.title = {title}, review.rating = {rating}, review.content = {content}, review.snippet = {snippet}",
+		params: {
+			reviewId: parseInt(req.params.id),
+			title: req.body.reviewTitle,
+			snippet: req.body.reviewSnippet,
+			content: req.body.reviewBody,
+			rating: req.body.gameRating,
+		}
+	}, function(err, results){
+		if(err) throw err;
+		res.sendStatus(200);
+		res.end();
+	});
 });
 
 app.get('/reviews/new', function(req, res){
@@ -469,6 +503,20 @@ app.get('/comment/:commentid/likers', function(req, res){
 			res.send();
 			res.end();
 		}
+	});
+});
+
+app.post('/comments/:commentid/edit', function(req, res){
+	db.cypher({
+		query: "MATCH (c:Comment) WHERE ID(c) = {id} SET c.content = {newcontent}",
+		params: {
+			id: parseInt(req.params.commentid),
+			newcontent: req.body.newcontent,
+		}
+	}, function(err, results){
+		if(err) throw err;
+		res.sendStatus(200);
+		res.end();
 	});
 });
 

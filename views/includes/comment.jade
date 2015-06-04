@@ -7,8 +7,12 @@
 - commentDate = commentDate.toLocaleString();
 if commenter != null
 	.comment-area(id="#{comment.commentid}")
-		p.
-			<a href="/profile/#{commenter}/">#{commenter}</a> commented:
+		.top-bar.clearfix
+			p.pull-left
+				<a href="/profile/#{commenter}/">#{commenter}</a> commented:
+			p.pull-right
+				if comment.editable
+					<a href="/comments/#{comment.commentid}/edit" class="comment-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
 		.panel.panel-default
 			.panel-body
 				p.comment-body

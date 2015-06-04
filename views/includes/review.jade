@@ -20,5 +20,9 @@
 				.full-review(hidden)
 					p
 						#{review.content}
-				.panel-footer.
-					reviewed by <a href="/profile/#{review.reviewer}">#{review.reviewer}</a>
+				.panel-footer.clearfix
+					p.pull-left
+						reviewed by <a href="/profile/#{review.reviewer}">#{review.reviewer}</a>
+					p.pull-right
+						if review.editable
+							<a href="/reviews/#{review.reviewId}/edit" class="review-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>

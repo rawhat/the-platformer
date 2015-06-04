@@ -6,7 +6,7 @@ jQuery(document).ready(function(){
 	});
 
 	$('.reviews-area').on('click', 'div.review-item', function(event){
-		if(!$(event.target).is('.panel-footer a')){
+		if(!$(event.target).is('.panel-footer, a, img')){
 			$(this).children('.full-review').toggle("slow");
 			$(this).children('.review-snippet').toggle("slow");
 		}
