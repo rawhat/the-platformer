@@ -16,6 +16,7 @@ jQuery(document).ready(function(){
 		if((inputText.length >= 1 && inputText.substr(0, 3).toLowerCase() != "the") || inputText.length >= 6){
 			$.post('/games/filter/' + inputText, function(data, success){
 				if(success){
+					console.log(data);
 					var gameList = [];
 					data.forEach(function(elem, index){
 						gameList.push({

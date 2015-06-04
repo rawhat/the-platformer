@@ -330,8 +330,9 @@ app.post('/games/filter/:title', function(req, res){
 		res.end();
 	});
 });
+*/
 
-app.post('/games/filter/', function(req, res){
+app.post('/games/filter/:query', function(req, res){
 	var myQuery = "MATCH (g:Game) WHERE g.title =~ '(?i)" + req.body.queryFilter + ".*' return g.title AS title, g.platform AS platform";
 	db.cypher({
 		query: myQuery,
@@ -341,7 +342,7 @@ app.post('/games/filter/', function(req, res){
 		res.end();
 	});
 });
-*/
+
 
 app.post('/games/own/:title/:platform', function(req, res){
 	var query = "MATCH (u:User), (g:Game) " +
