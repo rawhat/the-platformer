@@ -51,17 +51,19 @@ jQuery(document).ready(function(){
 	}
 
 	$('.submit-review').click(function(){
-		console.log(converter.makeHtml($('#wmd-input').val()));
-		/*
+		//console.log(converter.makeHtml($('#wmd-input').val()));ss
 		$.post('/reviews/new', {
 			reviewTitle: $('#review-title').val(),
 			gameTitle: $('#game-title').val(),
+			platform: $('.platform-list option:selected').text().toLowerCase(),
 			gameRating: $('#rating-spinner').spinner("value"),
 			reviewSnippet: $('#review-snippet').val(),
-			reviewBody: converter.makeHtml($('#wmd-input').val()),
+			reviewBody: $('.review-body').val(),
 		}, function(data, success){
-			if(success)
+			if(success){
 				alert("review posted");
-		});*/
+				window.location.replace('/reviews/');
+			}
+		});
 	});
 });

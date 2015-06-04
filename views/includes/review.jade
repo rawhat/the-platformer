@@ -1,7 +1,11 @@
 .reviews-area
 	if reviews != null
+		script(src="/scripts/Markdown.Converter.js")
+		script(src="/scripts/Markdown.Editor.js")
+		script(src="/scripts/Markdown.Sanitizer.js")
 		- each review in reviews
 			- var platform = review.platform.toUpperCase();
+
 			.panel.panel-default.review-item(id="#{review.reviewId}")
 				.panel-heading.clearfix
 					h1.pull-left.
@@ -9,20 +13,21 @@
 					.pull-right.review-header-right
 						p.
 							#{review.game} -- #{platform}
-						p
-							.rating-bar
-								script.
-									$('.rating-bar').progressbar({
-										value: #{review.rating} * 20,
-									}).children('.ui-progressbar-value').html(#{review.rating}*20 + '%').css('display', 'block');
+						.rating-bar(id="review#{review.reviewId}")
+							script.
+								$('#review' + #{review.reviewId}).progressbar({
+									value: #{review.rating} * 20,
+								}).children('.ui-progressbar-value').html(#{review.rating}*20 + '%').css('display', 'block');
+							
 				.well.review-snippet.
 					#{review.snippet}
 				.full-review(hidden)
-					p
+					p.
 						#{review.content}
 				.panel-footer.clearfix
 					p.pull-left
 						reviewed by <a href="/profile/#{review.reviewer}">#{review.reviewer}</a>
 					p.pull-right
 						if review.editable
-							<a href="/reviews/#{review.reviewId}/edit" class="review-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
+							| <a href="/reviews/#{review.reviewId}/edit" class="review-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
+							| <a href="" class="review-delete"> <img src="/img/png/glyphicons-17-bin.png" /></a>

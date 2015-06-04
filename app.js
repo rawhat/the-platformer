@@ -172,7 +172,16 @@ app.post('/reviews/:id/edit', function(req, res){
 });
 
 app.post('/reviews/:id/delete', function(req, res){
-
+	db.cypher({
+		query: "MATCH ()-[reviewed:REVIEWED]-() WHERE id(reviewed) = {id} DELETE reviewed",
+		params: {
+			id: parseInt(req.params.id),
+		}
+	}, function(err, results){
+		if(err) throw err;
+		res.sendStatus(200);
+		res.end();
+	});
 });
 
 app.get('/reviews/new', function(req, res){
@@ -182,11 +191,12 @@ app.get('/reviews/new', function(req, res){
 app.post('/reviews/new', function(req, res){
 	db.cypher({
 		query:  "MATCH (u:User), (g:Game) " +
-				"WHERE u.username = {curruser} AND g.title = {game} " + 
+				"WHERE u.username = {curruser} AND g.title = {game} AND g.platform = {platform} " + 
 				"CREATE (u)-[:REVIEWED {title: {title}, rating: {rating}, snippet: {snippet}, content: {content}}]->(g)",
 		params: {
 			curruser: req.cookies.username,
 			title: req.body.reviewTitle,
+			platform: req.body.platform,
 			rating: req.body.gameRating,
 			snippet: req.body.reviewSnippet,
 			content: req.body.reviewBody,
@@ -202,21 +212,25 @@ app.post('/reviews/new', function(req, res){
 app.post('/reviews/filter', function(req, res){
 	var query = "MATCH (u:User), (g:Game) MATCH (u)-[review:REVIEWED]-(g) ";
 	var searchQuery = "=~ '(?i)" + req.body.query + ".*'";
+	var hasWhere = false;
 	if(req.body.platforms){
 		req.body.platforms.forEach(function(platform, index){
-			if(index == 0)
+			if(index == 0){
 				query += "WHERE ";
+				hasWhere = true;
+			}
 			else
 				query += "OR ";
 			query += "g.platform =~ '(?i).*" + platform + ".*' "
 		});
 	}
-	if(req.body.query && !req.body.platforms){
+	if(!hasWhere){
 		query += "WHERE ";
 	}
-	else if(req.body.query){
-		query += "OR u.username " + searchQuery + " OR review.title " + searchQuery + " OR review.content " + searchQuery + " OR g.title " + searchQuery + " ";
+	else{		
+		query += "OR ";
 	}
+	query += "u.username " + searchQuery + " OR review.title " + searchQuery + " OR review.content " + searchQuery + " OR g.title " + searchQuery + " ";
 	query += "RETURN u.username AS reviewer, review.title AS title, review.rating AS rating, g.title AS game, g.platform AS platform, review.content AS content, review.snippet AS snippet";
 	db.cypher({
 		query: query, 

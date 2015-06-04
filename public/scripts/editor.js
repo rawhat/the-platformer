@@ -60,4 +60,14 @@ jQuery(document).ready(function(){
 			}
 		});
 	});
+
+	$('.reviews-area').on('click', '.review-delete', function(event){
+		event.preventDefault();
+		var reviewId = $(this).parents('.review-item').attr('id');
+		$.post('/reviews/' + reviewId + '/delete', function(data, success){
+			if(success){
+				location.reload(true);
+			}
+		})
+	});
 });
