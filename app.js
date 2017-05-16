@@ -690,4 +690,4 @@ app.post('/posts/:postid/delete', function(req, res){
 });
 
 
-app.listen(3000);
+app.listen(8002);
