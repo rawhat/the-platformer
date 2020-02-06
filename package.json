@@ -9,13 +9,18 @@
     "dgraph-js": "^2.1.0",
     "express": "^4.12.4",
     "jade": "^1.9.2",
+    "knex": "^0.20.8",
+    "migrate": "^1.6.2",
     "neo4j-driver": "^1.5.1",
     "pagedown": "^1.1.0",
+    "pg": "^7.18.1",
     "pm2": "^4.2.3",
     "unirest": "^0.6.0"
   },
   "devDependencies": {},
   "scripts": {
+    "make-migration": "knex migrate:make",
+    "migrate": "knex migrate:latest",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -27,6 +32,5 @@
   "bugs": {
     "url": "https://github.com/rawhat/the-platformer/issues"
   },
-  "homepage": "https://github.com/rawhat/the-platformer",
-  "type": "module"
+  "homepage": "https://github.com/rawhat/the-platformer"
 }

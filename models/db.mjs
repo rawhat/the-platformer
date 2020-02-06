@@ -1,13 +1,12 @@
-import dgraph from 'dgraph-js';
-import grpc from 'grpc';
+import knex from 'knex'
 
-const DB_STRING = process.env.DB_STRING || "localhost:9080"
-
-const stub = new dgraph.DgraphClientStub(
-  DB_STRING,
-  grpc.credentials.createInsecure()
-);
-
-const client = new dgraph.DgraphClient(stub);
-
-export { client }
+export const db = knex({
+  client: 'pg',
+  version: '10',
+  connection: () => ({
+    host: process.env.DB_STRING || "localhost:5432",
+    user: process.env.DB_USER || "postgres",
+    password: process.env.DB_PASS || "postgres",
+    database: process.env.DB_NAME || "platformer-local",
+  })
+})

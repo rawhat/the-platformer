@@ -1,4 +1,4 @@
-import { client } from "./db.mjs";
+import { db } from "./db.mjs";
 
 const listQuery = `all() {
   all() {
@@ -8,9 +8,10 @@ const listQuery = `all() {
 }
 `
 async function list() {
-  const res = await client.newTxn().query(listQuery);
-  const posts = res.getJson();
-  return posts;
+  //const res = await client.newTxn().query(listQuery);
+  //const posts = res.getJson();
+  //return posts;
+  return []
 }
 
 async function create(username, content) {

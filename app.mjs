@@ -1,9 +1,7 @@
 import express from 'express'
-import jade from 'jade'
 import neo4jDriver from 'neo4j-driver'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
-import unirest from 'unirest'
 import pagedown from 'pagedown'
 
 import { postRouter } from './router/posts.mjs';
