@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  db:
+    image: dgraph/standalone:latest
+    ports:
+      - "8080:8080"
+      - "9080:9080"
+      - "8000:8000"
+    #command: dgraph --lru_mb=1024 alpha
+  ui:
+    build: ./
+    ports:
+      - "3000:3000"
+    volumes:
+      - /opt/app/node_modules
+      - ./:/opt/app

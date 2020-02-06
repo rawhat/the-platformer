@@ -1,12 +1,15 @@
 FROM node:latest
 
-WORKDIR /usr/src/app
+WORKDIR /opt/app
 
-COPY . .
+COPY package.json .
+COPY package-lock.json .
 
-RUN npm install -g pm2
 RUN npm install
 
-EXPOSE 8002
+COPY app.js .
+COPY public/ .
+COPY pagedown/ .
+COPY views/ .
 
-CMD ["pm2-docker", "app.js"]
+CMD ["npx", "pm2-docker", "app.js"]

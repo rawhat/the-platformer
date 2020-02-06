@@ -1,14 +1,18 @@
-var express = require('express')
- ,  jade = require('jade')
- ,	neo4j = require('neo4j-driver').v1
- ,	bodyParser = require('body-parser')
- ,	cookieParser = require('cookie-parser')
- ,	unirest = require('unirest')
- ,	pagedown = require('pagedown');
+import express from 'express'
+import jade from 'jade'
+import neo4jDriver from 'neo4j-driver'
+import bodyParser from 'body-parser'
+import cookieParser from 'cookie-parser'
+import unirest from 'unirest'
+import pagedown from 'pagedown'
 
-var db = neo4j.driver("bolt://db", neo4j.auth.basic("neo4j", "Password12"))
+import { postRouter } from './router/posts.mjs';
 
-var app = express();
+const neo4j = neo4jDriver.v1
+
+const db = neo4j.driver("bolt://db", neo4j.auth.basic("neo4j", "Password12"))
+
+const app = express();
 
 app.set('views', './views');
 app.set('view engine', 'jade');
@@ -18,7 +22,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
-app.get('/create/', function(req, res){
+app.use(postRouter);
+
+app.get('/create/', (req, res) => {
 	res.render('newuser.jade', {title: "New user"});
 });
 
@@ -690,4 +696,4 @@ app.post('/posts/:postid/delete', function(req, res){
 });
 
 
-app.listen(8002);
+app.listen(3000);
