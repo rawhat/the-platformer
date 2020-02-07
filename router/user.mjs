@@ -17,7 +17,7 @@ userRouter.route('/users')
   .patch(async (req, res) => {
     try {
       const {username, password, email} = req.body;
-      const updated = await update(username, pass, email);
+      const updated = await update(username, password, email);
       return updated;
     } catch (err) {
       res.status(400).send({error: err});
@@ -30,11 +30,13 @@ userRouter.route('/login')
       const {username, password} = req.body;
       const authed = await authenticate(username, password);
       if (authed) {
+        req.session.username = username;
         res.status(200).end();
       } else {
         res.status(403).send({error: "Not authorized"});
       }
     } catch (err) {
+      console.error('err', err);
       res.status(400).send({error: err})
     }
   })

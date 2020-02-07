@@ -16,9 +16,9 @@ module.exports = {
     env_production: {
       NODE_ENV: 'production'
     },
-    watch_options: {
-      usePolling: true
-    }
+    //watch_options: {
+      //usePolling: true
+    //}
   }],
 
   deploy : {

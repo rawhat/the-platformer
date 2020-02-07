@@ -1,7 +1,6 @@
 import express from 'express'
+import session from 'express-session'
 import neo4jDriver from 'neo4j-driver'
-import bodyParser from 'body-parser'
-import cookieParser from 'cookie-parser'
 import pagedown from 'pagedown'
 
 import { postRouter } from './router/posts.mjs';
@@ -17,9 +16,10 @@ app.set('views', './views');
 app.set('view engine', 'jade');
 
 app.use(express.static('./public'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+app.use(express.json());
+app.use(session({
+  secret: process.env.SECRET || 'thisisatestvalue'
+}));
 
 app.use(userRouter);
 
@@ -28,7 +28,7 @@ app.get('/create/', (req, res) => {
 });
 
 app.get('*', function(req, res, next){
-	if(!req.cookies.username)
+	if(!req.session.username)
 		res.render('index', {title : 'Platformer'});
 	else
 		return next();
@@ -37,47 +37,10 @@ app.get('*', function(req, res, next){
 app.use(postRouter);
 
 app.get('/', function(req, res){
-	if(req.cookies.username)
+	if(req.session.username)
 		res.redirect('/posts/');
 	else
 		res.render('index', {title : 'Platformer'})
-});
-
-app.post('/login/', function(req, res){
-  var session = db.session();
-  session.run(
-    'MATCH (u:User {username: {username}, password: {password}}) RETURN u',
-    { username: req.body.username, password: req.body.password,	},
-  ).then(({records: results}) => {
-    var records = results.records;
-		var result = records[0];
-    session.close()
-		if(!result){
-			res.send('Invalid username or password.');
-		}
-		else{
-			res.send('true');
-		}
-  })
-  .catch((err) => {
-    console.log("problem");
-    throw err;
-  })
-});
-
-app.post('/create/', function(req, res){
-  var session = db.session();
-  session.run(
-    "CREATE (u:User {username: {username}, email: {email}, password: {password}});",
-		{ username: req.body.username, email: req.body.email,	password: req.body.password, }
-  ).then(() => {
-    res.sendStatus(201);
-    res.end();
-  })
-  .catch((err) => {
-    res.send(false);
-    res.end();
-  })
 });
 
 app.get('/posts/', function(req, res){
@@ -92,13 +55,13 @@ app.get('/posts/', function(req, res){
 		'with comment, commentLikes, post, poster, commentLikers, count(likes) AS postLikes, collect(liker.username) AS postLikers, datePosted ' +
 		'optional match (comment)-[dateCommented:POSTED]-(commenter:User) ' +
 		'return ID(post) AS postid, poster.username = {curruser} AS editable, poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers, commentid: ID(comment), editable: commenter.username = {curruser}}) AS comments ',
-			{ curruser: req.cookies.username,	}
+			{ curruser: req.session.username,	}
   ).then(({records: results}) => {
 		results.sort(function(a, b) { return b.postCreated - a.postCreated });
 		results.forEach(function(elem){
 			elem.comments.sort(function(a, b) { return a.date - b.date });
 		});
-		res.render('postlist', {posts: results, title: "Posts", curruser: req.cookies.username});
+		res.render('postlist', {posts: results, title: "Posts", curruser: req.session.username});
   })
   .catch((err) => {
     console.log(err);
@@ -110,7 +73,7 @@ app.post('/posts/new', function(req, res){
   var session = db.session();
 	session.run(
 		'MATCH (user:User {username: {username}}) CREATE (user)-[:MADE {created: {created}}]->(p:Post {content: {content}})',
-		{ username: req.cookies.username, created: ((new Date).getTime() / 1000), content: req.body.content, }
+		{ username: req.session.username, created: ((new Date).getTime() / 1000), content: req.body.content, }
   ).then(({records: results}) => {
 		res.send({records: results});
 		res.end();
@@ -136,14 +99,14 @@ app.get('/reviews/', function(req, res){
   var session = db.session();
 	session.run(
 		"MATCH (u:User), (g:Game) MATCH (u)-[review:REVIEWED]-(g) RETURN u.username AS reviewer, review.title AS title, review.rating AS rating, g.title AS game, g.platform AS platform, review.content AS content, review.snippet AS snippet, ID(review) AS reviewId, u.username = {curruser} AS editable",
-    {curruser: req.cookies.username, }
+    {curruser: req.session.username, }
   ).then(({records: results}) => {
 		var converter = new pagedown.Converter();
 		//var safeConverter = pagedown.getSantizingConverter();
 		results.forEach(function(elem){
 			elem.content = converter.makeHtml(elem.content);
 		});
-		res.render('reviewlist', {reviews: results, title: "Reviews", curruser: req.cookies.username});
+		res.render('reviewlist', {reviews: results, title: "Reviews", curruser: req.session.username});
 	});
 });
 
@@ -185,7 +148,7 @@ app.post('/reviews/:id/delete', function(req, res){
 });
 
 app.get('/reviews/new', function(req, res){
-	res.render('newreview', {title: "New Review", curruser: req.cookies.username});
+	res.render('newreview', {title: "New Review", curruser: req.session.username});
 });
 
 app.post('/reviews/new', function(req, res){
@@ -195,7 +158,7 @@ app.post('/reviews/new', function(req, res){
 	  "WHERE u.username = {curruser} AND g.title = {game} AND g.platform = {platform} " + 
 	  "CREATE (u)-[:REVIEWED {title: {title}, rating: {rating}, snippet: {snippet}, content: {content}}]->(g)",
 		{
-			curruser: req.cookies.username,
+			curruser: req.session.username,
 			title: req.body.reviewTitle,
 			platform: req.body.platform,
 			rating: req.body.gameRating,
@@ -298,7 +261,7 @@ app.get('/games/scrape/:platform', function(req, res){
 
 app.get('/games/:platform*?/', function(req, res){
 	var query = "MATCH (g:Game) " + 
-				"OPTIONAL MATCH (u:User {username: \"" + req.cookies.username + "\"})-[owns:OWNS]-(g) ";
+				"OPTIONAL MATCH (u:User {username: \"" + req.session.username + "\"})-[owns:OWNS]-(g) ";
 	if(req.params.platform){
 		query += "WHERE g.platform = " + req.params.platform + " ";
 	}
@@ -306,7 +269,7 @@ app.get('/games/:platform*?/', function(req, res){
 	query += "ORDER BY g.title ASC;"
   var session = db.session();
   session.run(query).then(({records: results}) => {
-		res.render('games', {games: results, title: "Games", curruser: req.cookies.username});
+		res.render('games', {games: results, title: "Games", curruser: req.session.username});
 	});
 });
 
@@ -326,7 +289,7 @@ app.post('/games/filter', function(req, res){
 	else if(req.body.query){
 		query += "AND g.title =~ '(?i).*" + req.body.query + ".*' ";
 	}
-	query += "OPTIONAL MATCH (u {username: \"" + req.cookies.username + "\"})-[owns:OWNS]-(g) "
+	query += "OPTIONAL MATCH (u {username: \"" + req.session.username + "\"})-[owns:OWNS]-(g) "
 	query += "RETURN g.title AS title, g.platform AS platform, g.url AS url, g.thumb AS thumbnail, g.date AS releaseDate, owns IS NOT NULL AS owned ";
 	query += "ORDER BY g.title ASC;"
   var session = db.session();
@@ -364,7 +327,7 @@ app.post('/games/filter/:query', function(req, res){
 
 app.post('/games/own/:title/:platform', function(req, res){
 	var query = "MATCH (u:User), (g:Game) " +
-				"WHERE u.username = \"" + req.cookies.username + "\" AND g.title = \"" + req.params.title + "\" AND g.platform = \"" + req.params.platform + "\" ";
+				"WHERE u.username = \"" + req.session.username + "\" AND g.title = \"" + req.params.title + "\" AND g.platform = \"" + req.params.platform + "\" ";
 	if(req.body.adding == "true"){
 		query += "CREATE (u)-[:OWNS]->(g)";
 	}
@@ -389,7 +352,7 @@ app.get('/profile/:username', function(req, res){
 	  'RETURN user.username AS username, user.email AS email, user.twitchid AS twitchid, collect(game) AS games, collect(user2.username) AS friends',
 		{username: req.params.username},
   ).then(({records: results}) => {
-		res.render('profile', {userinfo: results[0], title: req.params.username, curruser: req.cookies.username})
+		res.render('profile', {userinfo: results[0], title: req.params.username, curruser: req.session.username})
 	});
 });
 
@@ -401,7 +364,7 @@ app.get('/profile/:username/edit', function(req, res){
 		'RETURN user.username AS username, user.email AS email, user.password AS password, user.twitchid AS twitchid, collect(game) AS games',
 		{username: req.params.username},
   ).then(({records: results}) => {
-		res.render('editprofile', {userinfo: results[0], title: req.params.username, curruser: req.cookies.username})
+		res.render('editprofile', {userinfo: results[0], title: req.params.username, curruser: req.session.username})
 	});
 });
 
@@ -427,7 +390,7 @@ app.get('/friends/', function(req, res){
 	session.run(
 		'MATCH (user:User {username: {curruser}})-[:FRIEND]-(user2:User) RETURN user2.username AS username',
 		{
-			curruser: req.cookies.username,
+			curruser: req.session.username,
 		}
   ).then(({records: results}) => {
 		results.sort(function(a, b) { return a.username - b.username });
@@ -444,7 +407,7 @@ app.post('/friends/add', function(req, res){
 		'WHERE user.username = {curruser} AND user2.username = {friendname} ' +
 		'CREATE UNIQUE (user)-[:FRIEND]->(user2)',
 		{
-			curruser: req.cookies.username,
+			curruser: req.session.username,
 			friendname: req.body.friendname,
 		}
   ).then(({records: results}) => {
@@ -461,7 +424,7 @@ app.post('/friends/remove', function(req, res){
 		'MATCH (user)-[friends:FRIEND]-(user2) ' +
 		'DELETE friends',
 		{
-			curruser: req.cookies.username,
+			curruser: req.session.username,
 			friendname: req.body.friendname,
 		}
   ).then(({records: results}) => {
@@ -499,7 +462,7 @@ app.post('/post/:postid/comment', function(req, res){
 		'CREATE (u)-[:POSTED {date: {commentDate}}]->(c:Comment {content: {commentBody}})-[:HAS]->(p)',
 		{
 			postid: parseInt(req.params.postid),
-			commenter: req.cookies.username,
+			commenter: req.session.username,
 			commentDate: ((new Date()).getTime() / 1000),
 			commentBody: req.body.commentBody,
 		}
@@ -526,14 +489,14 @@ app.get('/post/:postid/', function(req, res){
 		'return ID(post) AS postid, poster.username = {curruser} AS editable, poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers, commentid: ID(comment), editable: commenter.username = {curruser}}) AS comments;',
 		{
 			postid: parseInt(req.params.postid),
-			curruser: req.cookies.username,
+			curruser: req.session.username,
 		}
   ).then(({records: results}) => {
 		results.sort(function(a, b) { return b.postCreated - a.postCreated });
 		results.forEach(function(elem){
 			elem.comments.sort(function(a, b) { return a.date - b.date });
 		});
-		res.render('includes/post', {post: results[0], curruser: req.cookies.username});
+		res.render('includes/post', {post: results[0], curruser: req.session.username});
 	});
 });
 
@@ -545,7 +508,7 @@ app.post('/post/:postid/like', function(req, res){
 		'CREATE UNIQUE (u)-[:LIKES]->(p) ',
 		{
 			postid: parseInt(req.params.postid),
-			curruser: req.cookies.username,
+			curruser: req.session.username,
 		}
   ).then(({records: results}) => {
 		res.sendStatus(200);
@@ -563,7 +526,7 @@ app.post('/post/:postid/dislike', function(req, res){
 		'DELETE likes',
 		{
 			postid: parseInt(req.params.postid),
-			curruser: req.cookies.username,
+			curruser: req.session.username,
 		}
   ).then(({records: results}) => {
 		res.sendStatus(200);
@@ -580,7 +543,7 @@ app.post('/comment/:commentid/like', function(req, res){
 		'CREATE UNIQUE (u)-[:LIKES]->(c) ',
 		{
 			commentid: parseInt(req.params.commentid),
-			curruser: req.cookies.username,
+			curruser: req.session.username,
 		}
   ).then(({records: results}) => {
 		res.sendStatus(200);
@@ -598,7 +561,7 @@ app.post('/comment/:commentid/dislike', function(req, res){
 		'DELETE likes',
 		{
 			commentid: parseInt(req.params.commentid),
-			curruser: req.cookies.username,
+			curruser: req.session.username,
 		}
   ).then(({records: results}) => {
 		res.sendStatus(200);
@@ -696,5 +659,7 @@ app.post('/posts/:postid/delete', function(req, res){
   .catch((err) => { throw err; });
 });
 
+const PORT = process.env.APP_PORT || 3000;
 
-app.listen(3000);
+app.listen(PORT);
+console.log("Now listening at...", PORT);

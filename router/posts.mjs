@@ -1,14 +1,18 @@
 import express from 'express'
 
-import { create, list, remove, update } from '../models/post.mjs'
+import { bigQuery, create, remove, update } from '../models/post.mjs'
 
 const postRouter = express.Router();
 
 postRouter.route('/posts')
   .get(async (req, res) => {
     try {
-      const posts = await list();
-      res.send({posts});
+      const posts = await bigQuery();
+      res.render('postlist', {
+        curruser: req.session.username,
+        posts,
+        title: "Posts",
+      });
     } catch (err) {
       res.status(400).send(err);
     }
