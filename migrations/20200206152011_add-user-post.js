@@ -1,12 +1,16 @@
-//import * as knex from "knex"
-const knex = require('knex');
-//import { db } from "../models/db.mjs";
-
 exports.up = async function(knex) {
   try {
-    const exists = await knex.schema.hasTable('posts');
-    if (!exists) {
-      return await knex.schema.createTable('posts', (table) => {
+    if (!await knex.schema.hasTable('users')) {
+      await knex.schema.createTable('users', (table) => {
+        table.increments('id');
+        table.string('username');
+        table.string('password')
+        table.string('email');
+      });
+    }
+
+    if (!await knex.schema.hasTable('posts')) {
+      await knex.schema.createTable('posts', (table) => {
         table.increments('id');
         table.integer('user_id')
           .unsigned()
@@ -21,5 +25,6 @@ exports.up = async function(knex) {
 };
 
 exports.down = async function(knex) {
+  await knex.schema.dropTable('users');
   await knex.schema.dropTable('posts');
 };

@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser'
 import pagedown from 'pagedown'
 
 import { postRouter } from './router/posts.mjs';
+import { userRouter } from './router/user.mjs';
 
 const neo4j = neo4jDriver.v1
 
@@ -20,7 +21,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
-app.use(postRouter);
+app.use(userRouter);
 
 app.get('/create/', (req, res) => {
 	res.render('newuser.jade', {title: "New user"});
@@ -32,6 +33,8 @@ app.get('*', function(req, res, next){
 	else
 		return next();
 });
+
+app.use(postRouter);
 
 app.get('/', function(req, res){
 	if(req.cookies.username)
