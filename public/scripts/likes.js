@@ -5,61 +5,47 @@ jQuery(document).ready(function(){
 		event.preventDefault();
 		var postId = $(this).closest('.user-post').attr('id');
 		var $this = $(this)
-		$.post('/post/' + postId + '/like', function(data, success){
-			if(success){
-				$.get('/post/' + postId, function(data, success){
-					if(success){
-						$this.closest('.post-div').html(data);
-					}
-				});
-			}
-		});
+    fetch(`/posts/${postId}/likes`, { method: 'POST' })
+      .then((res) => {
+        if (res.ok) {
+          window.location.reload();
+        }
+      })
 	});
 
 	$('.post-div').on('click', ".post-dislike-button", function(event){
 		event.preventDefault();
 		var postId = $(this).closest('.user-post').attr('id');
 		var $this = $(this)
-		$.post('/post/' + postId + '/dislike', function(data, success){
-			if(success){
-				$.get('/post/' + postId, function(data, success){
-					if(success){
-						$this.closest('.post-div').html(data);
-					}
-				});
-			}
-		});
+    fetch(`/posts/${postId}/likes`, { method: 'DELETE' })
+      .then((res) => {
+        if (res.ok) {
+          window.location.reload();
+        }
+      })
 	});
 
 	$('.post-div').on('click', ".comment-like-button", function(event){
 		event.preventDefault();
 		var commentId = $(this).closest('.comment-area').attr('id');
 		var postId = $(this).closest('.comment-area').siblings('.user-post').attr('id');
-		var $this = $(this)
-		$.post('/comment/' + commentId + '/like', function(data, success){
-			if(success){
-				$.get('/post/' + postId, function(data, success){
-					if(success){
-						$this.closest('.comment-area').parents('.post-div').html(data);
-					}
-				});
-			}
-		});
+    fetch(`/posts/${postId}/comments/${commentId}/likes`, { method: "POST" })
+      .then((res) => {
+        if (res.ok) {
+          window.location.reload();
+        }
+      })
 	});
 
 	$('.post-div').on('click', ".comment-dislike-button", function(event){
 		event.preventDefault();
 		var commentId = $(this).closest('.comment-area').attr('id');
 		var postId = $(this).closest('.comment-area').siblings('.user-post').attr('id');
-		var $this = $(this)
-		$.post('/comment/' + commentId + '/dislike', function(data, success){
-			if(success){
-				$.get('/post/' + postId, function(data, success){
-					if(success){
-						$this.closest('.comment-area').parents('.post-div').html(data);
-					}
-				});
-			}
-		});
+    fetch(`/posts/${postId}/comments/${commentId}/likes`, { method: "DELETE" })
+      .then((res) => {
+        if (res.ok) {
+          window.location.reload();
+        }
+      })
 	});
 });

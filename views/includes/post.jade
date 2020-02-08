@@ -1,7 +1,7 @@
-.user-post(id="#{post.postid}")
+.user-post(id="#{post.id}")
   .top-bar.clearfix
     p.pull-left
-      <a href="/profile/#{post.poster}/" class="username">#{post.poster}</a> posted:
+      <a href="/profile/#{post.userId}/" class="username">#{poster}</a> posted:
     p.pull-right
       if post.editable
         | <a href="" class="post-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
@@ -13,11 +13,11 @@
     .panel-footer
       p.pull-left #{new Date(post.created)}
       p.pull-right
-        | <a href="" class="show-post-likers">#{post.postLikes}</a>
+        | <a href="" class="show-post-likers">#{post.likes}</a>
         <a href="" class="post-like-button"> <img src="/img/png/glyphicons-344-thumbs-up.png" class="like-icon" /></a>
       .clearfix
-- each commentId in post.commentIds
-  - var comment = comments[commentId]
+- each comment in comments
+  - const commenter = data.users[comment.userId];
     include comment.jade
 textarea.comment-box(rows="2", cols="30", val="")
 button.btn.btn-default.post-comment Comment

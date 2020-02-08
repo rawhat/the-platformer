@@ -3,8 +3,9 @@ import session from 'express-session'
 import neo4jDriver from 'neo4j-driver'
 import pagedown from 'pagedown'
 
+import { likeRouter } from "./router/likes.mjs";
 import { postRouter } from './router/posts.mjs';
-import { isAuthenticated, userRouter } from './router/user.mjs';
+import { userRouter } from './router/user.mjs';
 
 const neo4j = neo4jDriver.v1
 
@@ -21,58 +22,17 @@ app.use(session({
   secret: process.env.SECRET || 'thisisatestvalue'
 }));
 
-app.use(userRouter);
+app.get('/', (req, res) => {
+  res.render('index', {title : 'Platformer'})
+});
 
 app.get('/create/', (req, res) => {
 	res.render('newuser.jade', {title: "New user"});
 });
 
-//app.get('/*', function(req, res, next){
-	//if(!req.session.username) {
-    //console.log('no session username')
-		////res.render('index', {title : 'Platformer'});
-    //res.redirect('/');
-  //} else {
-		//return next();
-  //}
-//});
-
+app.use(userRouter);
 app.use(postRouter);
-
-app.get('/', (req, res, ) => {
-	//if(req.session.username) {
-		//res.redirect('/posts/');
-    //next();
-  //} else {
-  res.render('index', {title : 'Platformer'})
-  //}
-});
-
-app.post('/posts/new', function(req, res){
-  var session = db.session();
-	session.run(
-		'MATCH (user:User {username: {username}}) CREATE (user)-[:MADE {created: {created}}]->(p:Post {content: {content}})',
-		{ username: req.session.username, created: ((new Date).getTime() / 1000), content: req.body.content, }
-  ).then(({records: results}) => {
-		res.send({records: results});
-		res.end();
-  })
-  .catch((err) => {
-    throw err;
-  });
-});
-
-app.post('/posts/:postid/edit', function(req, res){
-  var session = db.session()
-	session.run(
-		"MATCH (p:Post) WHERE ID(p) = {id} SET p.content = {newcontent}",
-		{ id: parseInt(req.params.postid), newcontent: req.body.newcontent,	}
-  ).then(({records: results}) => {
-		res.sendStatus(200);
-		res.end();
-  })
-  .catch((err) => { throw err; });
-});
+app.use(likeRouter);
 
 app.get('/reviews/', function(req, res){
   var session = db.session();
@@ -431,212 +391,6 @@ app.post('/filter/', function(req, res){
 		res.render('includes/post', {posts: results, query: searchQueries});
 	});
 });*/
-
-
-app.post('/post/:postid/comment', function(req, res){
-  var session = db.session();
-	session.run(
-		'MATCH (u:User), (p:Post) ' +
-		'WHERE ID(p) = {postid} AND u.username = {commenter} ' +
-		'CREATE (u)-[:POSTED {date: {commentDate}}]->(c:Comment {content: {commentBody}})-[:HAS]->(p)',
-		{
-			postid: parseInt(req.params.postid),
-			commenter: req.session.username,
-			commentDate: ((new Date()).getTime() / 1000),
-			commentBody: req.body.commentBody,
-		}
-  ).then(({records: results}) => {
-		res.sendStatus(200);
-		res.end();
-  })
-  .catch((err) => { throw err; });
-});
-
-
-app.get('/post/:postid/', function(req, res){
-  var session = db.session();
-	session.run(
-		'match (poster:User)-[datePosted:MADE]-(post:Post) ' +
-		'where ID(post) = {postid} ' +
-		'optional match (post)<-[:HAS]-(comment:Comment) ' +
-		'with comment, post, poster, datePosted ' +
-		'optional match (comment)-[likes:LIKES]-(liker:User) ' +
-		'with comment, count(likes) AS commentLikes, post, poster, collect(liker.username) AS commentLikers, datePosted ' +
-		'optional match (post)-[likes:LIKES]-(liker:User) ' +
-		'with comment, commentLikes, post, poster, commentLikers, count(likes) AS postLikes, collect(liker.username) AS postLikers, datePosted ' +
-		'optional match (comment)-[dateCommented:POSTED]-(commenter:User) ' +
-		'return ID(post) AS postid, poster.username = {curruser} AS editable, poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers, commentid: ID(comment), editable: commenter.username = {curruser}}) AS comments;',
-		{
-			postid: parseInt(req.params.postid),
-			curruser: req.session.username,
-		}
-  ).then(({records: results}) => {
-		results.sort(function(a, b) { return b.postCreated - a.postCreated });
-		results.forEach(function(elem){
-			elem.comments.sort(function(a, b) { return a.date - b.date });
-		});
-		res.render('includes/post', {post: results[0], curruser: req.session.username});
-	});
-});
-
-app.post('/post/:postid/like', function(req, res){
-  var session = db.session();
-	session.run(
-		'MATCH (p:Post), (u:User) ' +
-		'WHERE ID(p) = {postid} AND u.username = {curruser} ' +
-		'CREATE UNIQUE (u)-[:LIKES]->(p) ',
-		{
-			postid: parseInt(req.params.postid),
-			curruser: req.session.username,
-		}
-  ).then(({records: results}) => {
-		res.sendStatus(200);
-		res.end();
-  })
-  .catch((err) => { throw err; });
-});
-
-app.post('/post/:postid/dislike', function(req, res){
-  var session = db.session();
-	session.run(
-		'MATCH (p:Post), (u:User) ' +
-		'WHERE ID(p) = {postid} AND u.username = {curruser} ' +
-		'MATCH (u)-[likes:LIKES]-(p) ' +
-		'DELETE likes',
-		{
-			postid: parseInt(req.params.postid),
-			curruser: req.session.username,
-		}
-  ).then(({records: results}) => {
-		res.sendStatus(200);
-		res.end();
-  })
-  .catch((err) => { throw err; });
-});
-
-app.post('/comment/:commentid/like', function(req, res){
-  var session = db.session();
-	session.run(
-		'MATCH (c:Comment), (u:User) ' +
-		'WHERE ID(c) = {commentid} AND u.username = {curruser} ' +
-		'CREATE UNIQUE (u)-[:LIKES]->(c) ',
-		{
-			commentid: parseInt(req.params.commentid),
-			curruser: req.session.username,
-		}
-  ).then(({records: results}) => {
-		res.sendStatus(200);
-		res.end();
-  })
-  .catch((err) => { throw err; });
-});
-
-app.post('/comment/:commentid/dislike', function(req, res){
-  var session = db.session();
-	session.run(
-		'MATCH (c:Comment), (u:User) ' +
-		'WHERE ID(c) = {commentid} AND u.username = {curruser} ' +
-		'MATCH (u)-[likes:LIKES]-(c) ' +
-		'DELETE likes',
-		{
-			commentid: parseInt(req.params.commentid),
-			curruser: req.session.username,
-		}
-  ).then(({records: results}) => {
-		res.sendStatus(200);
-		res.end();
-  })
-  .catch((err) => { throw err; });
-});
-
-app.get('/post/:postid/likers', function(req, res){
-  var session = db.session();
-	session.run(
-		'MATCH (p:Post) ' +
-		'WHERE ID(p) = {postid} ' +
-		'OPTIONAL MATCH (p)<-[:LIKES]-(users:User) ' +
-		'RETURN collect(users.username) AS likers',
-		{
-			postid: parseInt(req.params.postid),
-		}
-  ).then(({records: results}) => {
-		if(results[0].likers.length != 0)
-			res.render('liker-list', {likers: results[0].likers});
-		else{
-			res.send();
-			res.end();
-		}
-	});
-});
-
-app.get('/comment/:commentid/likers', function(req, res){
-  var session = db.session();
-	session.run(
-		'MATCH (c:Comment) ' +
-		'WHERE ID(c) = {commentid} ' +
-		'OPTIONAL MATCH (c)-[:LIKES]-(users:User) ' +
-		'RETURN collect(users.username) AS likers',
-		{
-			commentid: parseInt(req.params.commentid),
-		},
-  ).then(({records: results}) => {
-		if(results[0].likers.length != 0)
-			res.render('liker-list', {likers: results[0].likers});
-		else{
-			res.send();
-			res.end();
-		}
-	});
-});
-
-app.post('/comments/:commentid/edit', function(req, res){
-  var session = db.session();
-	session.run(
-		"MATCH (c:Comment) WHERE ID(c) = {id} SET c.content = {newcontent}",
-		{
-			id: parseInt(req.params.commentid),
-			newcontent: req.body.newcontent,
-		}
-  ).then(({records: results}) => {
-		res.sendStatus(200);
-		res.end();
-  })
-  .catch((err) => { throw err; });
-});
-
-app.post('/comments/:commentid/delete', function(req, res){
-  var session = db.session();
-	session.run(
-		"MATCH (c:Comment) WHERE ID(c) = {id} " +
-		"MATCH ()-[r]-(c) " +
-		"DELETE c, r",
-		{
-			id: parseInt(req.params.commentid),
-		}
-  ).then(({records: results}) => {
-		res.sendStatus(200);
-		res.end();
-  })
-  .catch((err) => { throw err; });
-});
-
-app.post('/posts/:postid/delete', function(req, res){
-  var session = db.session();
-	session.run(
-		"MATCH (p:Post) WHERE ID(p) = {postid} " +
-		"OPTIONAL MATCH (c:Comment)-[:HAS]-(p) with c, p " +
-		"OPTIONAL MATCH (c)-[r]-() WITH c, r, p " +
-		"OPTIONAL MATCH ()-[l]-(p) WITH c, r, p, l " +
-		"DELETE c, r, p, l",
-		{
-			postid: parseInt(req.params.postid),
-		}
-  ).then(({records: results}) => {
-		res.sendStatus(200);
-		res.end();
-  })
-  .catch((err) => { throw err; });
-});
 
 const HOST = process.env.HOST || "0.0.0.0";
 const PORT = process.env.APP_PORT || 3000;

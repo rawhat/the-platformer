@@ -26,7 +26,6 @@ async function addComment(postId, userId, content) {
       posted_at: postedAt
     }, ['*'])
     .into('comments')
-    .first();
   return comment;
 }
 
@@ -38,8 +37,16 @@ async function editComment(commentId, content) {
   return comment;
 }
 
+async function deleteComment(commentId) {
+  await db
+    .delete()
+    .where({id: commentId})
+    .from('comments');
+}
+
 export {
   addComment,
+  deleteComment,
   editComment,
   getComments,
 }

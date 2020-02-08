@@ -17,12 +17,12 @@ loginButton.addEventListener('click', () => {
       method: 'POST'
     })
     .then(res => {
-      if (res.ok) {
-        errorBox.style.display ='none';
+      if (res.ok && res.status === 200) {
+        errorBox.style.display = 'none';
         Cookies.set('username', username, {expires: 1});
         window.location.replace("/posts/");
       } else {
-        errorBox.style.display = 'relative';
+        errorBox.style.display = 'block';
         errorBox.innerHTML = "Username or password incorrect";
       }
     })

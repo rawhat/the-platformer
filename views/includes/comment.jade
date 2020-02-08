@@ -1,34 +1,18 @@
-- var commenter = comment.commenter;
-- var content = comment.commentContent;
-- var likers = comment.commentLikers;
-- var commentDate = new Date(0);
-- commentDate.setUTCSeconds(comment.date);
-- commentDate = commentDate.toLocaleString();
-if comment.likers != null
-	- var currUserLiked = false;
-	- each liker in comment.likers
-		if liker == curruser
-			- currUserLiked = true;
-
-if commenter != null
-	.comment-area(id="#{comment.commentid}")
-		.top-bar.clearfix
-			p.pull-left
-				<a href="/profile/#{commenter}/">#{commenter}</a> commented:
-			p.pull-right
-				if comment.editable
-					| <a href="" class="comment-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
-					| <a href="" class="comment-delete"> <img src="/img/png/glyphicons-17-bin.png" /></a>
-		.panel.panel-default
-			.panel-body
-				p.comment-body
-					| #{content}
-			.panel-footer
-				p.pull-left #{commentDate}
-				p.pull-right 
-					| <a href="" class="show-comment-likers"> #{comment.likes} </a>
-					if currUserLiked
-						<a href="" class="comment-dislike-button"> <img src="/img/png/glyphicons-345-thumbs-down.png" class="like-icon" /> </a>
-					else
-						<a href="" class="comment-like-button"> <img src="/img/png/glyphicons-344-thumbs-up.png" class="like-icon" /> </a> 
-				.clearfix
+.comment-area(id="#{comment.id}")
+  .top-bar.clearfix
+    p.pull-left
+      <a href="/profile/#{comment.userId}/">#{commenter.username}</a> commented:
+    p.pull-right
+      if comment.editable
+        | <a href="" class="comment-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
+        | <a href="" class="comment-delete"> <img src="/img/png/glyphicons-17-bin.png" /></a>
+  .panel.panel-default
+    .panel-body
+      p.comment-body
+        | #{comment.content}
+    .panel-footer
+      p.pull-left #{new Date(comment.posted)}
+      p.pull-right
+        | <a href="" class="show-comment-likers"> #{comment.likes} </a>
+        <a href="" class="comment-like-button"> <img src="/img/png/glyphicons-344-thumbs-up.png" class="like-icon" /> </a>
+      .clearfix

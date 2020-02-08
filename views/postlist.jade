@@ -12,5 +12,7 @@ block content
   .liker-popup
   .post-area
     - each post in data.posts
+      - const poster = data.users[post.userId].username
+      - const comments = post.commentIds.map(commentId => data.comments[commentId])
       .well.post-div
         include includes/post.jade

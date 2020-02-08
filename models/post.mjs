@@ -1,8 +1,8 @@
 import { db } from "./db.mjs";
 import { getUserByUsername } from "./user.mjs";
 
-async function bigQuery() {
-  const results = await db('posts')
+function getBigQuery() {
+  return db('posts')
     .leftJoin('comments', {'comments.post_id': 'posts.id'})
     .leftJoin('post_likes', {'posts.id': 'post_likes.post_id'})
     .leftJoin('users', function() {
@@ -27,9 +27,12 @@ async function bigQuery() {
     .count('comment_likes.id as comment_likes')
     .groupBy('posts.id')
     .groupBy('comments.id')
-    .groupBy('users.id')
-  console.log(results);
-  const queryResults = collectQueryResults(results);
+    .groupBy('users.id');
+}
+
+async function bigQuery(userId) {
+  const results = await getBigQuery();
+  const queryResults = collectQueryResults(userId, results);
   console.log(queryResults);
   return queryResults;
 }
@@ -64,6 +67,7 @@ async function remove(id) {
 export {
   bigQuery,
   create,
+  getBigQuery,
   list,
   update,
   remove
@@ -87,12 +91,12 @@ export {
       comment_likes: '0'
     },
 */
-function collectQueryResults(results) {
+function collectQueryResults(userId, results) {
   const initial = {comments: {}, posts: {}, users: {}}
 
-  return results.reduce(({comments, posts, users} = acc, row) => {
-    let comment = getCommentFromRow(row);
-    let post = getPostFromRow(row);
+  return results.reduce(({comments, posts, users}, row) => {
+    let comment = getCommentFromRow(userId, row);
+    let post = getPostFromRow(userId, row);
     let user = getUserFromRow(row);
 
     let commentIds = [];
@@ -100,7 +104,7 @@ function collectQueryResults(results) {
       if (post.id in posts) {
         commentIds = posts[post.id].commentIds.concat(commentIds);
       } else {
-        let commentIds = [comment.id];
+        commentIds = [comment.id];
       }
     }
 
@@ -127,17 +131,17 @@ function updateById(coll, obj) {
   }
 }
 
-function getCommentFromRow(row) {
+function getCommentFromRow(userId, row) {
   const {
     comment_id: id,
     comment_content: content,
-    commenter: userId,
+    commenter: commenterId,
     commented_at: posted,
     comment_likes: likes,
     post_id: postId,
   } = row;
 
-  if (!id || !content || !userId || !posted || !likes) {
+  if (!id || !content || !commenterId || !posted || !likes) {
     return null;
   }
 
@@ -146,8 +150,9 @@ function getCommentFromRow(row) {
     content,
     posted,
     likes: parseInt(likes),
-    userId,
-    postId
+    userId: commenterId,
+    postId,
+    editable: commenterId === userId,
   }
 }
 
@@ -159,18 +164,21 @@ function getUserFromRow(row) {
   }
 }
 
-function getPostFromRow(row) {
+function getPostFromRow(userId, row) {
   const {
     post_id: id,
     post_content: content,
-    poster: userId,
+    post_likes: likes,
+    poster: posterId,
     created
   } = row;
 
   return {
     id,
     content,
-    userId,
-    created
+    likes,
+    userId: posterId,
+    created,
+    editable: posterId === userId,
   }
 }

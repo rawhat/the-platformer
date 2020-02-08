@@ -23,7 +23,7 @@ jQuery(document).ready(function(){
     .then(function(res) {
       if(res.ok){
         $("#post-content").val("");
-        window.location.replace("/");
+        window.location.replace("/posts");
       }
       else{
         console.log('error');

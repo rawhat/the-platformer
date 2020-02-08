@@ -1,8 +1,10 @@
 import express from 'express'
 
-import { bigQuery, create, remove, update } from '../models/post.mjs'
+import { bigQuery, create, getBigQuery, remove, update } from '../models/post.mjs'
+import { getUserByUsername } from "../models/user.mjs";
 
 import { isAuthenticated } from "./user.mjs";
+import { commentRouter } from "./comments.mjs";
 
 const postRouter = express.Router();
 
@@ -10,10 +12,12 @@ postRouter.use(isAuthenticated);
 
 postRouter.route('/posts')
   .get(async (req, res) => {
+    const {username} = req.session;
+    const user = await getUserByUsername(username).first();
     try {
-      const data = await bigQuery();
+      const data = await bigQuery(user.id);
       res.render('postlist', {
-        curruser: req.session.username,
+        curruser: username,
         data,
         title: "Posts",
       });
@@ -30,6 +34,11 @@ postRouter.route('/posts')
   });
 
 postRouter.route('/posts/:postId')
+  .get(async (req, res) => {
+    const {postId} = req.params;
+    const post = await getBigQuery().where({id: postId}).first();
+    res.send({post});
+  })
   .put(async (req, res) => {
     const { username } = req.cookies;
     const { newContent } = req.body;
@@ -42,5 +51,7 @@ postRouter.route('/posts/:postId')
     await remove(postId);
     res.sendStatus(204);
   });
+
+postRouter.use("/posts/:postId/comments", commentRouter);
 
 export { postRouter };

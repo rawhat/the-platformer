@@ -42,7 +42,7 @@ userRouter.route('/login')
   })
 
 function isAuthenticated(req, res, next) {
-  if (req.session.username) {
+  if (!!req.session.username) {
     return next();
   }
 

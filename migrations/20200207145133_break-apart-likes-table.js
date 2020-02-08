@@ -24,14 +24,6 @@ exports.up = async function(knex) {
 };
 
 exports.down = async function(knex) {
-  if (!await knex.schema.hasTable('likes')) {
-    await knex.schema.createTable('likes', (t) => {
-      t.integer('user_id').unsigned();
-      t.foreign('user_id').references('users.id');
-      t.integer('post_id').unsigned();
-      t.foreign('post_id').references('posts.id');
-      t.integer('comment_id').unsigned();
-      t.foreign('comment_id').references('comments.id');
-    });
-  }
+  await knex.schema.dropTable('post_likes')
+  await knex.schema.dropTable('comment_likes')
 };
