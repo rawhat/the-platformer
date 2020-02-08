@@ -14,7 +14,7 @@ userRouter.route('/users')
       res.status(400).send({error: err});
     }
   })
-  .patch(async (req, res) => {
+  .patch(isAuthenticated, async (req, res) => {
     try {
       const {username, password, email} = req.body;
       const updated = await update(username, password, email);
@@ -41,4 +41,15 @@ userRouter.route('/login')
     }
   })
 
-export { userRouter }
+function isAuthenticated(req, res, next) {
+  if (req.session.username) {
+    return next();
+  }
+
+  res.redirect('/');
+}
+
+export {
+  isAuthenticated,
+  userRouter
+}

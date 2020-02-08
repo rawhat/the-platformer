@@ -1,16 +1,16 @@
 extends layout
 block content
-	include includes/newpost.jade
-	include includes/searches.jade
-	- var page = "posts"
-	include includes/sorting.jade
-	script(src="/scripts/newpost.js")
-	script(src="/scripts/newcomment.js")
-	script(src="/scripts/likers.js")
-	script(src="/scripts/likes.js")
-	script(src="/scripts/postfilter.js")
-	.liker-popup
-	.post-area
-		- each post in posts
-			.well.post-div
-				include includes/post.jade
+  include includes/newpost.jade
+  include includes/searches.jade
+  - var page = "posts"
+  include includes/sorting.jade
+  script(src="/scripts/newpost.js")
+  script(src="/scripts/newcomment.js")
+  script(src="/scripts/likers.js")
+  script(src="/scripts/likes.js")
+  script(src="/scripts/postfilter.js")
+  .liker-popup
+  .post-area
+    - each post in data.posts
+      .well.post-div
+        include includes/post.jade

@@ -1,35 +1,23 @@
-- var postDate = new Date(0);
-- postDate.setUTCSeconds(post.postCreated);
-- postDate = postDate.toLocaleString();
-- var currUserLiked = false;
-if post.postLikers != null
-	- each liker in post.postLikers
-		if liker == curruser
-			- currUserLiked = true;
-
 .user-post(id="#{post.postid}")
-	.top-bar.clearfix
-		p.pull-left
-			<a href="/profile/#{post.poster}/" class="username">#{post.poster}</a> posted:
-		p.pull-right
-			if post.editable
-				| <a href="" class="post-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
-				| <a href="" class="post-delete"> <img src="/img/png/glyphicons-17-bin.png" /></a>
-	.panel.panel-default
-		.panel-body
-			p.post-body
-				| #{post.postContent}
-		.panel-footer
-			p.pull-left #{postDate} 
-			p.pull-right
-				| <a href="" class="show-post-likers">#{post.postLikes}</a> 
-				if currUserLiked
-					<a href="" class="post-dislike-button"> <img src="/img/png/glyphicons-345-thumbs-down.png" class="like-icon" /></a>
-				else
-					<a href="" class="post-like-button"> <img src="/img/png/glyphicons-344-thumbs-up.png" class="like-icon" /></a> 
-			.clearfix
-- var comments = post.comments
-- each comment in comments
-	include comment.jade
+  .top-bar.clearfix
+    p.pull-left
+      <a href="/profile/#{post.poster}/" class="username">#{post.poster}</a> posted:
+    p.pull-right
+      if post.editable
+        | <a href="" class="post-edit"> <img src="/img/png/glyphicons-151-edit.png" /></a>
+        | <a href="" class="post-delete"> <img src="/img/png/glyphicons-17-bin.png" /></a>
+  .panel.panel-default
+    .panel-body
+      p.post-body
+        | #{post.content}
+    .panel-footer
+      p.pull-left #{new Date(post.created)}
+      p.pull-right
+        | <a href="" class="show-post-likers">#{post.postLikes}</a>
+        <a href="" class="post-like-button"> <img src="/img/png/glyphicons-344-thumbs-up.png" class="like-icon" /></a>
+      .clearfix
+- each commentId in post.commentIds
+  - var comment = comments[commentId]
+    include comment.jade
 textarea.comment-box(rows="2", cols="30", val="")
 button.btn.btn-default.post-comment Comment

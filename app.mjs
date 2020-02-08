@@ -4,7 +4,7 @@ import neo4jDriver from 'neo4j-driver'
 import pagedown from 'pagedown'
 
 import { postRouter } from './router/posts.mjs';
-import { userRouter } from './router/user.mjs';
+import { isAuthenticated, userRouter } from './router/user.mjs';
 
 const neo4j = neo4jDriver.v1
 
@@ -27,46 +27,25 @@ app.get('/create/', (req, res) => {
 	res.render('newuser.jade', {title: "New user"});
 });
 
-app.get('*', function(req, res, next){
-	if(!req.session.username)
-		res.render('index', {title : 'Platformer'});
-	else
-		return next();
-});
+//app.get('/*', function(req, res, next){
+	//if(!req.session.username) {
+    //console.log('no session username')
+		////res.render('index', {title : 'Platformer'});
+    //res.redirect('/');
+  //} else {
+		//return next();
+  //}
+//});
 
 app.use(postRouter);
 
-app.get('/', function(req, res){
-	if(req.session.username)
-		res.redirect('/posts/');
-	else
-		res.render('index', {title : 'Platformer'})
-});
-
-app.get('/posts/', function(req, res){
-  var session = db.session();
-	session.run(
-		'match (poster:User)-[datePosted:MADE]-(post:Post) ' +
-		'optional match (post)<-[:HAS]-(comment:Comment) ' +
-		'with comment, post, poster, datePosted ' +
-		'optional match (comment)-[likes:LIKES]-(liker:User) ' +
-		'with comment, count(likes) AS commentLikes, post, poster, collect(liker.username) AS commentLikers, datePosted ' +
-		'optional match (post)-[likes:LIKES]-(liker:User) ' +
-		'with comment, commentLikes, post, poster, commentLikers, count(likes) AS postLikes, collect(liker.username) AS postLikers, datePosted ' +
-		'optional match (comment)-[dateCommented:POSTED]-(commenter:User) ' +
-		'return ID(post) AS postid, poster.username = {curruser} AS editable, poster.username AS poster, datePosted.created AS postCreated, post.content AS postContent, postLikes, postLikers, collect({commentContent: comment.content, commenter: commenter.username, date: dateCommented.date, likes: commentLikes, likers: commentLikers, commentid: ID(comment), editable: commenter.username = {curruser}}) AS comments ',
-			{ curruser: req.session.username,	}
-  ).then(({records: results}) => {
-		results.sort(function(a, b) { return b.postCreated - a.postCreated });
-		results.forEach(function(elem){
-			elem.comments.sort(function(a, b) { return a.date - b.date });
-		});
-		res.render('postlist', {posts: results, title: "Posts", curruser: req.session.username});
-  })
-  .catch((err) => {
-    console.log(err);
-    throw err;
-  });
+app.get('/', (req, res, ) => {
+	//if(req.session.username) {
+		//res.redirect('/posts/');
+    //next();
+  //} else {
+  res.render('index', {title : 'Platformer'})
+  //}
 });
 
 app.post('/posts/new', function(req, res){
@@ -659,7 +638,8 @@ app.post('/posts/:postid/delete', function(req, res){
   .catch((err) => { throw err; });
 });
 
+const HOST = process.env.HOST || "0.0.0.0";
 const PORT = process.env.APP_PORT || 3000;
 
-app.listen(PORT);
+app.listen(PORT, HOST);
 console.log("Now listening at...", PORT);

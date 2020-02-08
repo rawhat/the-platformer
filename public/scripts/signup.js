@@ -19,12 +19,19 @@ jQuery(document).ready(function(){
 		}
 
 		if(isValidEmailAddress(email) && errors == false){
-			$.post('/create/', {
-				username: username,
-				email: email,
-				password: password,
-			}, function(data, success){
-				if(success){
+      fetch('/users', {
+        body: JSON.stringify({
+          username: username,
+          email: email,
+          password: password,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        method: 'POST',
+      })
+      .then(function(res){
+				if(res.ok){
 					$('.alert').addClass('alert-success');
 					$('.alert').text("User successfully created! You can now log in.");
 					window.setTimeout(window.location.replace('/'), 200);

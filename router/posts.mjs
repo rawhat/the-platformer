@@ -2,15 +2,19 @@ import express from 'express'
 
 import { bigQuery, create, remove, update } from '../models/post.mjs'
 
+import { isAuthenticated } from "./user.mjs";
+
 const postRouter = express.Router();
+
+postRouter.use(isAuthenticated);
 
 postRouter.route('/posts')
   .get(async (req, res) => {
     try {
-      const posts = await bigQuery();
+      const data = await bigQuery();
       res.render('postlist', {
         curruser: req.session.username,
-        posts,
+        data,
         title: "Posts",
       });
     } catch (err) {
@@ -18,7 +22,7 @@ postRouter.route('/posts')
     }
   })
   .post(async (req, res) => {
-    const { username } = req.cookies;
+    const { username } = req.session;
     const { content } = req.body;
 
     const created = await create(username, content);

@@ -15,8 +15,7 @@ async function getHash(password) {
 async function create(username, password, email) {
   const hashed = await getHash(password);
   const created = await db('users')
-    .insert({username, password: hashed, email}, ['id', 'username'])
-    .first();
+    .insert({username, password: hashed, email}, ['id', 'username']);
   return created;
 }
 
@@ -28,7 +27,7 @@ async function get(id) {
 }
 
 async function authenticate(username, password) {
-  const [user] = await db("users")
+  const user = await db("users")
     .select('id', 'password')
     .where('username', username)
     .first();
